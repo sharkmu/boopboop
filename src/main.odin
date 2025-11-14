@@ -13,6 +13,8 @@ Character :: struct {
 }
 
 player := Character{}
+player_direction := "LEFT" // LEFT, RIGHT, UP, DOWN
+
 enemies: [dynamic]Character
 
 init :: proc() {
@@ -55,6 +57,7 @@ main :: proc() {
             height = f32(player_sprite.height),
         }
         
+        enemy_index := 0
         for enemy in enemies {
             rl.DrawRectangleV(enemy.pos, enemy.size, enemy.colour)
 
@@ -65,8 +68,10 @@ main :: proc() {
                 height = enemy.size.y,
             }
 
-            is_colliding := rl.CheckCollisionRecs(player_rec, enemy_rec)
-            fmt.println(is_colliding)
+            if rl.CheckCollisionRecs(player_rec, enemy_rec) {
+                boop_enemy(enemy_index)
+            }
+            enemy_index += 1
         }
 
         rl.EndDrawing()
@@ -79,21 +84,25 @@ player_movement :: proc() {
     if rl.IsKeyDown(.A) || rl.IsKeyDown(.LEFT) {
         if(player.pos.x > 0) {
             player.pos.x -= 400 * rl.GetFrameTime()
+            player_direction = "LEFT"
         }
     }
     if rl.IsKeyDown(.D) || rl.IsKeyDown(.RIGHT) {
-        if player.pos.x < f32(rl.GetScreenWidth() - 48) {
+        if player.pos.x < f32(rl.GetScreenWidth() - 64) {
             player.pos.x += 400 * rl.GetFrameTime()
+            player_direction = "RIGHT"
         }
     }
     if rl.IsKeyDown(.W) || rl.IsKeyDown(.UP) {
         if player.pos.y > 0 {
             player.pos.y -= 400 * rl.GetFrameTime()
+            player_direction = "UP"
         }
     }
     if rl.IsKeyDown(.S) || rl.IsKeyDown(.DOWN) {
-        if player.pos.y < f32(rl.GetScreenHeight() - 48) {
+        if player.pos.y < f32(rl.GetScreenHeight() - 64) {
             player.pos.y += 400 * rl.GetFrameTime()
+            player_direction = "DOWN"
         }
     }
 }
@@ -108,5 +117,22 @@ generate_enemy :: proc(amount: int) {
             is_enemy = true,
         }
         append(&enemies, e) 
+    }
+}
+
+boop_enemy :: proc(index: int) {
+    switch player_direction {
+        case "LEFT":
+            enemies[index].pos.x -= 1000 * rl.GetFrameTime()
+            enemies[index].pos.y += 100 * rl.GetFrameTime()
+        case "RIGHT":
+            enemies[index].pos.x += 1000 * rl.GetFrameTime()
+            enemies[index].pos.y -= 100 * rl.GetFrameTime()
+        case "UP":
+            enemies[index].pos.x += 100 * rl.GetFrameTime()
+            enemies[index].pos.y -= 1000 * rl.GetFrameTime()
+        case "DOWN":
+            enemies[index].pos.x -= 100 * rl.GetFrameTime()
+            enemies[index].pos.y += 1000 * rl.GetFrameTime()
     }
 }
