@@ -39,17 +39,34 @@ rand_num :: proc(min: f32, max: f32) -> f32 {
 main :: proc() {
     init()
 
-    player_texture := rl.LoadTexture("assets/player.png")
+    player_sprite := rl.LoadTexture("assets/player.png")
+    
 
     for !rl.WindowShouldClose() {
         rl.BeginDrawing()
         rl.ClearBackground(rl.BLUE)
         
         player_movement()
-        rl.DrawTexture(player_texture, i32(player.pos.x), i32(player.pos.y), player.colour)
+        rl.DrawTexture(player_sprite, i32(player.pos.x), i32(player.pos.y), player.colour)
+        player_rec := rl.Rectangle {
+            x = player.pos.x,
+            y = player.pos.y,
+            width = f32(player_sprite.width),
+            height = f32(player_sprite.height),
+        }
         
         for enemy in enemies {
             rl.DrawRectangleV(enemy.pos, enemy.size, enemy.colour)
+
+            enemy_rec := rl.Rectangle {
+                x = enemy.pos.x,
+                y = enemy.pos.y,
+                width = f32(enemy.size.x),
+                height = f32(enemy.size.y),
+            }
+
+            is_colliding := rl.CheckCollisionRecs(player_rec, enemy_rec)
+            fmt.println(is_colliding)
         }
 
         rl.EndDrawing()
