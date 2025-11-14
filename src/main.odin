@@ -5,25 +5,34 @@ import "core:math/rand"
 import "base:runtime"
 import "core:fmt" // for debugging
 
-player_pos := rl.Vector2{400, 300}
 
-Enemy :: struct {
+Character :: struct {
     pos : rl.Vector2,
     size: rl.Vector2,
     colour: rl.Color,
+    is_enemy: bool,
 }
 
-enemies: [dynamic]Enemy
+player := Character{}
+enemies: [dynamic]Character
 
 init :: proc() {
     rl.InitWindow(800, 600, "BoopBoop by: sharkmu")
 
-    e: Enemy = Enemy{ 
+    e: Character = Character{ 
         pos = rl.Vector2{ f32(rand.int31() % 700), f32(rand.int31() % 500)}, 
-        size = rl.Vector2{32,32}, 
-        colour = rl.RED 
+        size = rl.Vector2{32, 32}, 
+        colour = rl.RED,
+        is_enemy = true,
     }
     append(&enemies, e)
+
+    player = Character{
+        pos = rl.Vector2{400, 300},
+        size = rl.Vector2{48, 48},
+        colour = rl.YELLOW,
+        is_enemy = false,
+    }
 }
 
 main :: proc() {
@@ -34,7 +43,7 @@ main :: proc() {
         rl.ClearBackground(rl.BLUE)
         
         player_movement()
-        rl.DrawRectangleV(player_pos, {64, 64}, rl.YELLOW)
+        rl.DrawRectangleV(player.pos, player.size, player.colour)
         
         for enemy in enemies {
             rl.DrawRectangleV(enemy.pos, enemy.size, enemy.colour)
@@ -48,23 +57,23 @@ main :: proc() {
 
 player_movement :: proc() {
     if rl.IsKeyDown(.A) || rl.IsKeyDown(.LEFT) {
-        if(player_pos.x > 0) {
-            player_pos.x -= 400 * rl.GetFrameTime()
+        if(player.pos.x > 0) {
+            player.pos.x -= 400 * rl.GetFrameTime()
         }
     }
     if rl.IsKeyDown(.D) || rl.IsKeyDown(.RIGHT) {
-        if player_pos.x < 736 {
-            player_pos.x += 400 * rl.GetFrameTime()
+        if player.pos.x < f32(rl.GetScreenWidth() - 48) {
+            player.pos.x += 400 * rl.GetFrameTime()
         }
     }
     if rl.IsKeyDown(.W) || rl.IsKeyDown(.UP) {
-        if player_pos.y > 0 {
-            player_pos.y -= 400 * rl.GetFrameTime()
+        if player.pos.y > 0 {
+            player.pos.y -= 400 * rl.GetFrameTime()
         }
     }
     if rl.IsKeyDown(.S) || rl.IsKeyDown(.DOWN) {
-        if player_pos.y < 536 {
-            player_pos.y += 400 * rl.GetFrameTime()
+        if player.pos.y < f32(rl.GetScreenHeight() - 48) {
+            player.pos.y += 400 * rl.GetFrameTime()
         }
     }
 }
