@@ -18,13 +18,7 @@ enemies: [dynamic]Character
 init :: proc() {
     rl.InitWindow(800, 600, "BoopBoop by: sharkmu")
 
-    e: Character = Character{ 
-        pos = rl.Vector2{ f32(rand.int31() % 700), f32(rand.int31() % 500)}, 
-        size = rl.Vector2{32, 32}, 
-        colour = rl.RED,
-        is_enemy = true,
-    }
-    append(&enemies, e)
+    generate_enemy(1)
 
     player = Character{
         pos = rl.Vector2{400, 300},
@@ -32,6 +26,14 @@ init :: proc() {
         colour = rl.YELLOW,
         is_enemy = false,
     }
+}
+
+rand_num :: proc(min: f32, max: f32) -> f32 {
+    r_initial := rand.float32()
+
+	r_between_range := r_initial * (max - min) + min
+
+    return r_between_range
 }
 
 main :: proc() {
@@ -74,5 +76,18 @@ player_movement :: proc() {
         if player.pos.y < f32(rl.GetScreenHeight() - 48) {
             player.pos.y += 400 * rl.GetFrameTime()
         }
+    }
+}
+
+generate_enemy :: proc(amount: int) {
+    for i := 0; i < amount; i+=1 {
+        size_num := rand_num(12, 64)
+        e: Character = Character{ 
+            pos = rl.Vector2{ rand_num(10, 700), rand_num(10, 500)},
+            size = rl.Vector2{ size_num, size_num },
+            colour = rl.Color{ u8(rand_num(0, 255)), u8(rand_num(0, 255)), u8(rand_num(0, 255)), 255},
+            is_enemy = true,
+        }
+        append(&enemies, e) 
     }
 }
