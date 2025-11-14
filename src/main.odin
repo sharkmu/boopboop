@@ -2,7 +2,6 @@ package main
 
 import rl "vendor:raylib"
 import "core:math/rand"
-import "base:runtime"
 import "core:fmt" // for debugging
 
 
