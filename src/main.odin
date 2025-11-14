@@ -61,8 +61,8 @@ main :: proc() {
             enemy_rec := rl.Rectangle {
                 x = enemy.pos.x,
                 y = enemy.pos.y,
-                width = f32(enemy.size.x),
-                height = f32(enemy.size.y),
+                width = enemy.size.x,
+                height = enemy.size.y,
             }
 
             is_colliding := rl.CheckCollisionRecs(player_rec, enemy_rec)
