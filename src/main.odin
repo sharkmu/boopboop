@@ -39,12 +39,14 @@ rand_num :: proc(min: f32, max: f32) -> f32 {
 main :: proc() {
     init()
 
+    player_texture := rl.LoadTexture("assets/player.png")
+
     for !rl.WindowShouldClose() {
         rl.BeginDrawing()
         rl.ClearBackground(rl.BLUE)
         
         player_movement()
-        rl.DrawRectangleV(player.pos, player.size, player.colour)
+        rl.DrawTexture(player_texture, i32(player.pos.x), i32(player.pos.y), player.colour)
         
         for enemy in enemies {
             rl.DrawRectangleV(enemy.pos, enemy.size, enemy.colour)
@@ -81,7 +83,7 @@ player_movement :: proc() {
 
 generate_enemy :: proc(amount: int) {
     for i := 0; i < amount; i+=1 {
-        size_num := rand_num(12, 64)
+        size_num := rand_num(12, 48)
         e: Character = Character{ 
             pos = rl.Vector2{ rand_num(10, 700), rand_num(10, 500)},
             size = rl.Vector2{ size_num, size_num },
