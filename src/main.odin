@@ -2,6 +2,8 @@ package main
 
 import rl "vendor:raylib"
 import "core:math/rand"
+import "core:encoding/cbor"
+import "core:os"
 import "core:fmt" // for debugging
 
 
@@ -15,12 +17,20 @@ Character :: struct {
 player := Character{}
 player_direction := "LEFT" // LEFT, RIGHT, UP, DOWN
 
-money := 0
-
 enemies: [dynamic]Character
+too_many_enemies := false
+
+SaveData :: struct {
+    money: i32,
+    score: i32,
+}
+
+game_data := SaveData{}
 
 init :: proc() {
     rl.InitWindow(800, 600, "BoopBoop by: sharkmu")
+
+    load_game_data()
 
     generate_enemy(1)
 
@@ -40,6 +50,35 @@ rand_num :: proc(min: f32, max: f32) -> f32 {
     return r_between_range
 }
 
+load_game_data :: proc() {
+    bytes, ok := os.read_entire_file("save.cbor");
+    if !ok {
+        save_game_data(game_data)
+    }
+
+    err := cbor.unmarshal_from_bytes(bytes, &game_data);
+    if err != nil {
+        fmt.println("Failed to unmarshal CBOR:", err);
+    }
+}
+
+save_game_data :: proc(data: SaveData) {
+    bytes, err := cbor.marshal_into_bytes(data);
+    if err != nil {
+        fmt.eprintln("CBOR marshal failed:", err);
+        return;
+    }
+
+    file, error := os.open("save.cbor", os.O_CREATE | os.O_WRONLY | os.O_TRUNC);
+    if error != nil {
+        fmt.eprintln("Failed to open save.cbor");
+        return;
+    }
+    defer os.close(file);
+
+    os.write(file, bytes);
+}
+
 main :: proc() {
     init()
 
@@ -50,10 +89,9 @@ main :: proc() {
         rl.BeginDrawing()
         rl.ClearBackground(rl.BLUE)
 
-        
-
         // UI
-        rl.DrawText(fmt.ctprint("Money:", money), 10, 10, 30, rl.BLACK)
+        rl.DrawText(fmt.ctprint("Money:", game_data.money), 10, 10, 30, rl.BLACK)
+        rl.DrawText(fmt.ctprint("Score:", game_data.score), 10, 50, 30, rl.BLACK)
                 
         // Player
         player_movement()
@@ -83,16 +121,30 @@ main :: proc() {
             
             // Check if enemy is outside of the screen
             if enemy.pos.x < (0 - enemy.size.x) || enemy.pos.x > f32(rl.GetScreenWidth()) ||
-               enemy.pos.y < (0 - enemy.size.y) || enemy.pos.y > f32(rl.GetScreenHeight()) {
-                // increase money
-                // increase enemies pushed out
-                // remove enemy from enemies
-                // generate new enemies
-                fmt.println("enemy pushed out")
-                fmt.println(enemy.pos)
+               enemy.pos.y < (0 - enemy.size.y) || enemy.pos.y > f32(rl.GetScreenHeight()) 
+            {                
+                game_data.money += i32(0.2 * enemy.size.x)
+                game_data.score += 1
+
+                ordered_remove(&enemies, enemy_index)
+
+                if !too_many_enemies {
+                    r_enemy_amount := rand_num(1, 10)
+                    generate_enemy(int(r_enemy_amount))
+                }
+                
+                save_game_data(game_data)
             }
 
             enemy_index += 1
+        }
+
+        if len(enemies) > 12 {
+            too_many_enemies = true
+        }
+        if too_many_enemies && len(enemies) < 1 {
+            too_many_enemies = false
+            generate_enemy(1)
         }
 
         rl.EndDrawing()
