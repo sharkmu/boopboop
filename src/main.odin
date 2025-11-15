@@ -25,6 +25,8 @@ any_collision := false
 show_level_text := false
 level_text_timer: f32 = 2.0
 
+current_scene := "GAME_SCENE" // GAME_SCENE, SHOP_SCENE
+
 SaveData :: struct {
     money: i32,
     score: i32,
@@ -91,101 +93,115 @@ main :: proc() {
     player_sprite := rl.LoadTexture("assets/player.png")
     restart_button_sprite := rl.LoadTexture("assets/restart_button.png")
     
-
     for !rl.WindowShouldClose() {
-        rl.BeginDrawing()
-        rl.ClearBackground(game_data.level_colour)
-                
-        // Player
-        player_movement()
-        rl.DrawTexture(player_sprite, i32(player.pos.x), i32(player.pos.y), player.colour)
-        player_rec := rl.Rectangle {
-            x = player.pos.x,
-            y = player.pos.y,
-            width = f32(player_sprite.width),
-            height = f32(player_sprite.height),
+        switch current_scene {
+            case "GAME_SCENE": game_scene(player_sprite, restart_button_sprite)
+            case "SHOP_SCENE": shop_scene()
+        }
+    }
+    rl.CloseWindow()
+}
+
+game_scene :: proc(player_sprite: rl.Texture2D, restart_button_sprite: rl.Texture2D) {
+    rl.BeginDrawing()
+    rl.ClearBackground(game_data.level_colour)
+
+    // Player
+    player_movement()
+    rl.DrawTexture(player_sprite, i32(player.pos.x), i32(player.pos.y), player.colour)
+    player_rec := rl.Rectangle {
+        x = player.pos.x,
+        y = player.pos.y,
+             width = f32(player_sprite.width),
+        height = f32(player_sprite.height),
+    }
+    
+    // Enemy
+    enemy_index := 0
+    for enemy in enemies {
+        rl.DrawRectangleV(enemy.pos, enemy.size, enemy.colour)
+
+        enemy_rec := rl.Rectangle {
+            x = enemy.pos.x,
+            y = enemy.pos.y,
+            width = enemy.size.x,
+            height = enemy.size.y,
+        }
+
+        if rl.CheckCollisionRecs(player_rec, enemy_rec) {
+            boop_enemy(enemy_index)
+            enemies[enemy_index].is_colliding = true
+        } else {
+            if enemies[enemy_index].is_colliding {
+                enemies[enemy_index].is_colliding = false
+                any_collision = false
+            }
+        }
+
+        if enemies[enemy_index].is_colliding {
+            any_collision = true
         }
         
-        // Enemy
-        enemy_index := 0
-        for enemy in enemies {
-            rl.DrawRectangleV(enemy.pos, enemy.size, enemy.colour)
+        // Check if enemy is outside of the screen
+        if enemy.pos.x < (0 - enemy.size.x) || enemy.pos.x > f32(rl.GetScreenWidth()) ||
+            enemy.pos.y < (0 - enemy.size.y) || enemy.pos.y > f32(rl.GetScreenHeight()) 
+        {                
+            game_data.money += i32(0.2 * enemy.size.x)
+            game_data.score += 1
 
-            enemy_rec := rl.Rectangle {
-                x = enemy.pos.x,
-                y = enemy.pos.y,
-                width = enemy.size.x,
-                height = enemy.size.y,
-            }
+            ordered_remove(&enemies, enemy_index)
+            any_collision = false
 
-            if rl.CheckCollisionRecs(player_rec, enemy_rec) {
-                boop_enemy(enemy_index)
-                enemies[enemy_index].is_colliding = true
-            } else {
-                if enemies[enemy_index].is_colliding {
-                    enemies[enemy_index].is_colliding = false
-                    any_collision = false
-                }
-            }
-
-            if enemies[enemy_index].is_colliding {
-                any_collision = true
+            if !too_many_enemies {
+                r_enemy_amount := rand_num(1, 10)
+                generate_enemy(int(r_enemy_amount))
             }
             
-            // Check if enemy is outside of the screen
-            if enemy.pos.x < (0 - enemy.size.x) || enemy.pos.x > f32(rl.GetScreenWidth()) ||
-               enemy.pos.y < (0 - enemy.size.y) || enemy.pos.y > f32(rl.GetScreenHeight()) 
-            {                
-                game_data.money += i32(0.2 * enemy.size.x)
-                game_data.score += 1
-
-                ordered_remove(&enemies, enemy_index)
-                any_collision = false
-
-                if !too_many_enemies {
-                    r_enemy_amount := rand_num(1, 10)
-                    generate_enemy(int(r_enemy_amount))
-                }
-                
-                save_game_data(game_data)
-            }
-
-            enemy_index += 1
+            save_game_data(game_data)
         }
 
-        if len(enemies) > 12 {
-            too_many_enemies = true
-        }
-        if too_many_enemies && len(enemies) < 1 {
-            next_level()
-        }
-
-        // UI
-        rl.DrawText(fmt.ctprint("Money:", game_data.money), 10, 10, 30, rl.BLACK)
-        rl.DrawText(fmt.ctprint("Score:", game_data.score), 10, 50, 30, rl.BLACK)
-        rl.DrawText(fmt.ctprint("Level:", game_data.level), 10, 90, 30, rl.BLACK)
-        if show_level_text {
-            frameTime := rl.GetFrameTime()
-            rl.DrawText("New Level!", 250, 200, 60, rl.YELLOW)
-            level_text_timer -= frameTime
-            if level_text_timer <= 0 {
-                show_level_text = false
-            }
-        }
-
-        rl.DrawTexture(restart_button_sprite, rl.GetScreenWidth() - 32, 0, rl.WHITE)
-        mouse_pos := rl.GetMousePosition()
-        if rl.IsMouseButtonPressed(rl.MouseButton.LEFT) {
-            if mouse_pos.x > 770 && mouse_pos.y < 29 {
-                restart_level()
-            }
-        }
-        
-
-        rl.EndDrawing()
+        enemy_index += 1
     }
 
-    rl.CloseWindow()
+    if len(enemies) > 12 {
+        too_many_enemies = true
+    }
+    if too_many_enemies && len(enemies) < 1 {
+        next_level()
+    }
+
+    // UI
+    rl.DrawText(fmt.ctprint("Money:", game_data.money), 10, 10, 30, rl.BLACK)
+    rl.DrawText(fmt.ctprint("Score:", game_data.score), 10, 50, 30, rl.BLACK)
+    rl.DrawText(fmt.ctprint("Level:", game_data.level), 10, 90, 30, rl.BLACK)
+    if show_level_text {
+        frameTime := rl.GetFrameTime()
+        rl.DrawText("New Level!", 250, 200, 60, rl.YELLOW)
+        level_text_timer -= frameTime
+        if level_text_timer <= 0 {
+            show_level_text = false
+        }
+    }
+
+    rl.DrawTexture(restart_button_sprite, rl.GetScreenWidth() - 32, 0, rl.WHITE)
+    mouse_pos := rl.GetMousePosition()
+    if rl.IsMouseButtonPressed(rl.MouseButton.LEFT) {
+        if mouse_pos.x > 770 && mouse_pos.y < 29 {
+            rl.EndDrawing()
+            restart_level()
+        }
+    }
+
+    rl.EndDrawing()
+}
+
+shop_scene :: proc() {
+    rl.BeginDrawing()
+    rl.ClearBackground(rl.BEIGE)
+
+    rl.DrawText("Shop", 100, 100, 100, rl.WHITE)
+    
+    rl.EndDrawing()
 }
 
 player_movement :: proc() {
