@@ -16,5 +16,5 @@
     - [ ] After every enemy pushed out the player gets time based on the size of the enemy
     - [ ] The bigger the enemy is, the more time the player gets after pushing it out
 - [ ] Implement a player resizing system
-    - [ ] After every completed level the player's size increase a bit
-    - [ ] If the player pushes out an enemy that is bigger than the player, then the player's size instantly decreases a bit
+    - [ ] After every completed level the player's size increases a bit
+    - [ ] If the player pushes out an enemy that is bigger than the player, then the player's size and money instantly decreases a bit
