@@ -8,9 +8,13 @@
 # Tasks
 - [ ] Implement a level system
     - [ ] Change the background colour/image based on the level
+    - [ ] Display level number in the UI (`DrawText`)
 - [ ] Add ability to restart the level
 - [ ] Add shop where the player can spend his/her money
 - [ ] Add a timer
     - [ ] If the time runs out the player fails the level, have the ability to restart it
     - [ ] After every enemy pushed out the player gets time based on the size of the enemy
     - [ ] The bigger the enemy is, the more time the player gets after pushing it out
+- [ ] Implement a player resizing system
+    - [ ] After every completed level the player's size increase a bit
+    - [ ] If the player pushes out an enemy that is bigger than the player, then the player's size instantly decreases a bit
