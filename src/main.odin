@@ -11,7 +11,6 @@ Character :: struct {
     pos : rl.Vector2,
     size: rl.Vector2,
     colour: rl.Color,
-    is_enemy: bool,
     is_colliding: bool,
 }
 
@@ -40,7 +39,6 @@ init :: proc() {
         pos = rl.Vector2{400, 300},
         size = rl.Vector2{48, 48},
         colour = rl.YELLOW,
-        is_enemy = false,
     }
 }
 
@@ -200,7 +198,6 @@ generate_enemy :: proc(amount: int) {
             pos = rl.Vector2{ rand_num(10, 700), rand_num(10, 500)},
             size = rl.Vector2{ size_num, size_num },
             colour = rl.Color{ u8(rand_num(0, 255)), u8(rand_num(0, 255)), u8(rand_num(0, 255)), 255},
-            is_enemy = true,
             is_colliding = false,
         }
         append(&enemies, e) 
