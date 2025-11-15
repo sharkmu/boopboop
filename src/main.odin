@@ -92,17 +92,18 @@ main :: proc() {
 
     player_sprite := rl.LoadTexture("assets/player.png")
     restart_button_sprite := rl.LoadTexture("assets/restart_button.png")
+    shop_button_sprite := rl.LoadTexture("assets/shop_button.png")
     
     for !rl.WindowShouldClose() {
         switch current_scene {
-            case "GAME_SCENE": game_scene(player_sprite, restart_button_sprite)
+            case "GAME_SCENE": game_scene(player_sprite, restart_button_sprite, shop_button_sprite)
             case "SHOP_SCENE": shop_scene()
         }
     }
     rl.CloseWindow()
 }
 
-game_scene :: proc(player_sprite: rl.Texture2D, restart_button_sprite: rl.Texture2D) {
+game_scene :: proc(player_sprite: rl.Texture2D, restart_btn_sprite: rl.Texture2D, shop_btn_sprite: rl.Texture2D) {
     rl.BeginDrawing()
     rl.ClearBackground(game_data.level_colour)
 
@@ -183,12 +184,28 @@ game_scene :: proc(player_sprite: rl.Texture2D, restart_button_sprite: rl.Textur
         }
     }
 
-    rl.DrawTexture(restart_button_sprite, rl.GetScreenWidth() - 32, 0, rl.WHITE)
+    restart_btn_rect := rl.Rectangle {
+        x = f32(rl.GetScreenWidth() - 32),
+        y = 5,
+        width = 32,
+        height = 32,
+    }
+    shop_btn_rect := rl.Rectangle {
+        x = f32(rl.GetScreenWidth() - 70),
+        y = 5,
+        width = 32,
+        height = 32,
+    }
+    rl.DrawTexture(restart_btn_sprite, i32(restart_btn_rect.x), i32(restart_btn_rect.y), rl.WHITE)
+    rl.DrawTexture(shop_btn_sprite, i32(shop_btn_rect.x), i32(shop_btn_rect.y), rl.WHITE)
     mouse_pos := rl.GetMousePosition()
     if rl.IsMouseButtonPressed(rl.MouseButton.LEFT) {
-        if mouse_pos.x > 770 && mouse_pos.y < 29 {
-            rl.EndDrawing()
+        if rl.CheckCollisionPointRec(mouse_pos, restart_btn_rect) {
             restart_level()
+        }
+        if rl.CheckCollisionPointRec(mouse_pos, shop_btn_rect) {
+            rl.EndDrawing()
+            current_scene = "SHOP_SCENE"
         }
     }
 
