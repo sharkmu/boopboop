@@ -15,6 +15,8 @@ Character :: struct {
 player := Character{}
 player_direction := "LEFT" // LEFT, RIGHT, UP, DOWN
 
+money := 0
+
 enemies: [dynamic]Character
 
 init :: proc() {
@@ -47,7 +49,13 @@ main :: proc() {
     for !rl.WindowShouldClose() {
         rl.BeginDrawing()
         rl.ClearBackground(rl.BLUE)
+
         
+
+        // UI
+        rl.DrawText(fmt.ctprint("Money:", money), 10, 10, 30, rl.BLACK)
+                
+        // Player
         player_movement()
         rl.DrawTexture(player_sprite, i32(player.pos.x), i32(player.pos.y), player.colour)
         player_rec := rl.Rectangle {
@@ -57,6 +65,7 @@ main :: proc() {
             height = f32(player_sprite.height),
         }
         
+        // Enemy
         enemy_index := 0
         for enemy in enemies {
             rl.DrawRectangleV(enemy.pos, enemy.size, enemy.colour)
@@ -71,6 +80,18 @@ main :: proc() {
             if rl.CheckCollisionRecs(player_rec, enemy_rec) {
                 boop_enemy(enemy_index)
             }
+            
+            // Check if enemy is outside of the screen
+            if enemy.pos.x < (0 - enemy.size.x) || enemy.pos.x > f32(rl.GetScreenWidth()) ||
+               enemy.pos.y < (0 - enemy.size.y) || enemy.pos.y > f32(rl.GetScreenHeight()) {
+                // increase money
+                // increase enemies pushed out
+                // remove enemy from enemies
+                // generate new enemies
+                fmt.println("enemy pushed out")
+                fmt.println(enemy.pos)
+            }
+
             enemy_index += 1
         }
 
