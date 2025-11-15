@@ -89,6 +89,7 @@ main :: proc() {
     init()
 
     player_sprite := rl.LoadTexture("assets/player.png")
+    restart_button_sprite := rl.LoadTexture("assets/restart_button.png")
     
 
     for !rl.WindowShouldClose() {
@@ -172,6 +173,15 @@ main :: proc() {
             }
         }
 
+        rl.DrawTexture(restart_button_sprite, rl.GetScreenWidth() - 32, 0, rl.WHITE)
+        mouse_pos := rl.GetMousePosition()
+        if rl.IsMouseButtonPressed(rl.MouseButton.LEFT) {
+            if mouse_pos.x > 770 && mouse_pos.y < 29 {
+                restart_level()
+            }
+        }
+        
+
         rl.EndDrawing()
     }
 
@@ -245,4 +255,11 @@ next_level :: proc() {
     generate_enemy(1)
 
     show_level_text = true
+}
+
+restart_level :: proc() {
+    too_many_enemies = false
+    delete(enemies)
+    enemies = nil
+    generate_enemy(1)
 }
