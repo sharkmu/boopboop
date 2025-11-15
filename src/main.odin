@@ -12,6 +12,7 @@ Character :: struct {
     size: rl.Vector2,
     colour: rl.Color,
     is_enemy: bool,
+    is_colliding: bool,
 }
 
 player := Character{}
@@ -19,6 +20,7 @@ player_direction := "LEFT" // LEFT, RIGHT, UP, DOWN
 
 enemies: [dynamic]Character
 too_many_enemies := false
+any_collision := false
 
 SaveData :: struct {
     money: i32,
@@ -117,6 +119,16 @@ main :: proc() {
 
             if rl.CheckCollisionRecs(player_rec, enemy_rec) {
                 boop_enemy(enemy_index)
+                enemies[enemy_index].is_colliding = true
+            } else {
+                if enemies[enemy_index].is_colliding {
+                    enemies[enemy_index].is_colliding = false
+                    any_collision = false
+                }
+            }
+
+            if enemies[enemy_index].is_colliding {
+                any_collision = true
             }
             
             // Check if enemy is outside of the screen
@@ -127,6 +139,7 @@ main :: proc() {
                 game_data.score += 1
 
                 ordered_remove(&enemies, enemy_index)
+                any_collision = false
 
                 if !too_many_enemies {
                     r_enemy_amount := rand_num(1, 10)
@@ -155,25 +168,25 @@ main :: proc() {
 
 player_movement :: proc() {
     if rl.IsKeyDown(.A) || rl.IsKeyDown(.LEFT) {
-        if(player.pos.x > 0) {
+        if(player.pos.x > 0) && !any_collision {
             player.pos.x -= 400 * rl.GetFrameTime()
             player_direction = "LEFT"
         }
     }
     if rl.IsKeyDown(.D) || rl.IsKeyDown(.RIGHT) {
-        if player.pos.x < f32(rl.GetScreenWidth() - 64) {
+        if player.pos.x < f32(rl.GetScreenWidth() - 64) && !any_collision {
             player.pos.x += 400 * rl.GetFrameTime()
             player_direction = "RIGHT"
         }
     }
     if rl.IsKeyDown(.W) || rl.IsKeyDown(.UP) {
-        if player.pos.y > 0 {
+        if player.pos.y > 0 && !any_collision {
             player.pos.y -= 400 * rl.GetFrameTime()
             player_direction = "UP"
         }
     }
     if rl.IsKeyDown(.S) || rl.IsKeyDown(.DOWN) {
-        if player.pos.y < f32(rl.GetScreenHeight() - 64) {
+        if player.pos.y < f32(rl.GetScreenHeight() - 64) && !any_collision {
             player.pos.y += 400 * rl.GetFrameTime()
             player_direction = "DOWN"
         }
@@ -188,6 +201,7 @@ generate_enemy :: proc(amount: int) {
             size = rl.Vector2{ size_num, size_num },
             colour = rl.Color{ u8(rand_num(0, 255)), u8(rand_num(0, 255)), u8(rand_num(0, 255)), 255},
             is_enemy = true,
+            is_colliding = false,
         }
         append(&enemies, e) 
     }
@@ -196,16 +210,16 @@ generate_enemy :: proc(amount: int) {
 boop_enemy :: proc(index: int) {
     switch player_direction {
         case "LEFT":
-            enemies[index].pos.x -= 1000 * rl.GetFrameTime()
-            enemies[index].pos.y += 100 * rl.GetFrameTime()
+            enemies[index].pos.x -= (5000 * rl.GetFrameTime())/enemies[index].size.x
+            enemies[index].pos.y += (300 * rl.GetFrameTime())/enemies[index].size.y
         case "RIGHT":
-            enemies[index].pos.x += 1000 * rl.GetFrameTime()
-            enemies[index].pos.y -= 100 * rl.GetFrameTime()
+            enemies[index].pos.x += (5000 * rl.GetFrameTime())/enemies[index].size.x
+            enemies[index].pos.y -= (300 * rl.GetFrameTime())/enemies[index].size.y
         case "UP":
-            enemies[index].pos.x += 100 * rl.GetFrameTime()
-            enemies[index].pos.y -= 1000 * rl.GetFrameTime()
+            enemies[index].pos.x += (300 * rl.GetFrameTime())/enemies[index].size.x
+            enemies[index].pos.y -= (5000 * rl.GetFrameTime())/enemies[index].size.y
         case "DOWN":
-            enemies[index].pos.x -= 100 * rl.GetFrameTime()
-            enemies[index].pos.y += 1000 * rl.GetFrameTime()
+            enemies[index].pos.x -= (300 * rl.GetFrameTime())/enemies[index].size.x
+            enemies[index].pos.y += (5000 * rl.GetFrameTime())/enemies[index].size.y
     }
 }
