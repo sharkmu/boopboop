@@ -4,6 +4,7 @@ import rl "vendor:raylib"
 import "core:math/rand"
 import "core:encoding/cbor"
 import "core:os"
+import "core:time"
 import "core:fmt" // for debugging
 
 
@@ -21,12 +22,17 @@ enemies: [dynamic]Character
 too_many_enemies := false
 any_collision := false
 
+show_level_text := false
+level_text_timer: f32 = 2.0
+
 SaveData :: struct {
     money: i32,
     score: i32,
+    level: i32,
+    level_colour: rl.Color,
 }
 
-game_data := SaveData{}
+game_data := SaveData{level=1, level_colour=rl.BLUE}
 
 init :: proc() {
     rl.InitWindow(800, 600, "BoopBoop by: sharkmu")
@@ -87,11 +93,7 @@ main :: proc() {
 
     for !rl.WindowShouldClose() {
         rl.BeginDrawing()
-        rl.ClearBackground(rl.BLUE)
-
-        // UI
-        rl.DrawText(fmt.ctprint("Money:", game_data.money), 10, 10, 30, rl.BLACK)
-        rl.DrawText(fmt.ctprint("Score:", game_data.score), 10, 50, 30, rl.BLACK)
+        rl.ClearBackground(game_data.level_colour)
                 
         // Player
         player_movement()
@@ -154,8 +156,20 @@ main :: proc() {
             too_many_enemies = true
         }
         if too_many_enemies && len(enemies) < 1 {
-            too_many_enemies = false
-            generate_enemy(1)
+            next_level()
+        }
+
+        // UI
+        rl.DrawText(fmt.ctprint("Money:", game_data.money), 10, 10, 30, rl.BLACK)
+        rl.DrawText(fmt.ctprint("Score:", game_data.score), 10, 50, 30, rl.BLACK)
+        rl.DrawText(fmt.ctprint("Level:", game_data.level), 10, 90, 30, rl.BLACK)
+        if show_level_text {
+            frameTime := rl.GetFrameTime()
+            rl.DrawText("New Level!", 250, 200, 60, rl.YELLOW)
+            level_text_timer -= frameTime
+            if level_text_timer <= 0 {
+                show_level_text = false
+            }
         }
 
         rl.EndDrawing()
@@ -189,6 +203,7 @@ player_movement :: proc() {
             player_direction = "DOWN"
         }
     }
+    if rl.IsKeyDown((.SPACE)) { next_level() }
 }
 
 generate_enemy :: proc(amount: int) {
@@ -219,4 +234,15 @@ boop_enemy :: proc(index: int) {
             enemies[index].pos.x -= (300 * rl.GetFrameTime())/enemies[index].size.x
             enemies[index].pos.y += (5000 * rl.GetFrameTime())/enemies[index].size.y
     }
+}
+
+next_level :: proc() {
+    game_data.level += 1
+    game_data.level_colour = rl.Color{u8(rand_num(80, 255)), u8(rand_num(80, 255)), u8(rand_num(80, 255)), u8(rand_num(50, 255))}
+    save_game_data(game_data)
+
+    too_many_enemies = false
+    generate_enemy(1)
+
+    show_level_text = true
 }
