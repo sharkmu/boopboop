@@ -6,10 +6,10 @@
 - [x] The bigger the enemy is, the more money the player gets
 
 # Tasks
-- [ ] Implement a level system
-    - [ ] Change the background colour/image based on the level
-    - [ ] Display level number in the UI (`DrawText`)
-- [ ] Add ability to restart the level
+- [x] Implement a level system
+    - [x] Change the background colour/image based on the level
+    - [x] Display level number in the UI (`DrawText`)
+- [x] Add ability to restart the level
 - [ ] Add shop where the player can spend his/her money
 - [ ] Add a timer
     - [ ] If the time runs out the player fails the level, have the ability to restart it
