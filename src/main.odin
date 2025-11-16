@@ -27,11 +27,12 @@ level_text_timer: f32 = 2.0
 // UI rectangles
 restart_btn_rect := rl.Rectangle{}
 shop_btn_rect := rl.Rectangle{}
-shop_skins_btn := rl.Rectangle{ x = 70, y = 120, width = 78, height = 30 } 
+shop_skins_btn_rect := rl.Rectangle{ x = 70, y = 120, width = 78, height = 30 } 
 shop_enemy_shapes_btn_rect := rl.Rectangle{ x = 280, y = 120, width = 210, height = 30 }
 shop_backgrounds_btn_rect := rl.Rectangle{ x = 570, y = 120, width = 198, height = 30 }
 
-current_scene := "GAME_SCENE" // GAME_SCENE, SHOP_SCENE
+// GAME_SCENE, SHOP_SCENE, SHOP_ENEMY_SHAPES_SCENE, SHOP_BACKGROUNDS_SCENE
+current_scene := "GAME_SCENE"
 
 SaveData :: struct {
     money: i32,
@@ -111,6 +112,8 @@ main :: proc() {
         switch current_scene {
             case "GAME_SCENE": game_scene(player_sprite, restart_button_sprite, shop_button_sprite)
             case "SHOP_SCENE": shop_scene()
+            case "SHOP_ENEMY_SHAPES_SCENE": shop_enemy_shapes_scene()
+            case "SHOP_BACKGROUNDS_SCENE": shop_backgrounds_scene()
         }
     }
     rl.CloseWindow()
@@ -213,24 +216,55 @@ game_scene :: proc(player_sprite: rl.Texture2D, restart_btn_sprite: rl.Texture2D
     rl.EndDrawing()
 }
 
+shop_layout :: proc(active: string) {
+    rl.DrawText("Shop", 270, 10, 100, rl.BLACK)
+    rl.DrawText("Skins", 70, 120, 30, active == "skins" ? rl.BLUE : rl.BLACK)
+    rl.DrawText("Enemy shapes", 280, 120, 30, active == "enemy_shapes" ? rl.BLUE : rl.BLACK)
+    rl.DrawText("Backgrounds",  570, 120, 30, active == "backgrounds" ? rl.BLUE : rl.BLACK)
+
+    mouse_pos := rl.GetMousePosition()
+    if rl.IsMouseButtonPressed(rl.MouseButton.LEFT) {
+        if active == "skins" || active == "enemy_shapes" {
+            if rl.CheckCollisionPointRec(mouse_pos, shop_backgrounds_btn_rect) {
+                current_scene = "SHOP_BACKGROUNDS_SCENE"
+            }
+        }
+        if active == "skins" || active == "backgrounds" {
+            if rl.CheckCollisionPointRec(mouse_pos, shop_enemy_shapes_btn_rect) {
+                current_scene = "SHOP_ENEMY_SHAPES_SCENE"
+            }
+        }
+        if active == "enemy_shapes" || active == "backgrounds" {
+            if rl.CheckCollisionPointRec(mouse_pos, shop_skins_btn_rect) {
+                current_scene = "SHOP_SCENE"
+            }
+        }
+    }
+}
+
 shop_scene :: proc() {
     rl.BeginDrawing()
     rl.ClearBackground(rl.BEIGE)
 
-    rl.DrawText("Shop", 270, 10, 100, rl.BLACK)
-    rl.DrawText("Skins", 70, 120, 30, rl.BLUE) // BLUE because it is active
-    rl.DrawText("Enemy shapes", 280, 120, 30, rl.BLACK)
-    rl.DrawText("Backgrounds",  570, 120, 30, rl.BLACK)
+    shop_layout("skins")
 
-    mouse_pos := rl.GetMousePosition()
-    if rl.IsMouseButtonPressed(rl.MouseButton.LEFT) {
-        if rl.CheckCollisionPointRec(mouse_pos, shop_enemy_shapes_btn_rect) {
-            fmt.println("enemy shop")
-        }
-        if rl.CheckCollisionPointRec(mouse_pos, shop_backgrounds_btn_rect) {
-            fmt.println("backgrounds shop")
-        }
-    }
+    rl.EndDrawing()
+}
+
+shop_enemy_shapes_scene :: proc() {
+    rl.BeginDrawing()
+    rl.ClearBackground(rl.BEIGE)
+
+    shop_layout("enemy_shapes")
+
+    rl.EndDrawing()
+}
+
+shop_backgrounds_scene :: proc() {
+    rl.BeginDrawing()
+    rl.ClearBackground(rl.BEIGE)
+
+    shop_layout("backgrounds")
 
     rl.EndDrawing()
 }
