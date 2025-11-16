@@ -24,6 +24,13 @@ any_collision := false
 show_level_text := false
 level_text_timer: f32 = 2.0
 
+// UI rectangles
+restart_btn_rect := rl.Rectangle{}
+shop_btn_rect := rl.Rectangle{}
+shop_skins_btn := rl.Rectangle{ x = 70, y = 120, width = 78, height = 30 } 
+shop_enemy_shapes_btn_rect := rl.Rectangle{ x = 280, y = 120, width = 210, height = 30 }
+shop_backgrounds_btn_rect := rl.Rectangle{ x = 570, y = 120, width = 198, height = 30 }
+
 current_scene := "GAME_SCENE" // GAME_SCENE, SHOP_SCENE
 
 SaveData :: struct {
@@ -46,6 +53,13 @@ init :: proc() {
         pos = rl.Vector2{400, 300},
         size = rl.Vector2{48, 48},
         colour = rl.YELLOW,
+    }
+
+    restart_btn_rect = rl.Rectangle{
+        x = f32(rl.GetScreenWidth() - 32), y = 5, width = 32, height = 32
+    }
+    shop_btn_rect = rl.Rectangle{
+        x = f32(rl.GetScreenWidth() - 70), y = 5, width = 32, height = 32
     }
 }
 
@@ -183,18 +197,6 @@ game_scene :: proc(player_sprite: rl.Texture2D, restart_btn_sprite: rl.Texture2D
         }
     }
 
-    restart_btn_rect := rl.Rectangle {
-        x = f32(rl.GetScreenWidth() - 32),
-        y = 5,
-        width = 32,
-        height = 32,
-    }
-    shop_btn_rect := rl.Rectangle {
-        x = f32(rl.GetScreenWidth() - 70),
-        y = 5,
-        width = 32,
-        height = 32,
-    }
     rl.DrawTexture(restart_btn_sprite, i32(restart_btn_rect.x), i32(restart_btn_rect.y), rl.WHITE)
     rl.DrawTexture(shop_btn_sprite, i32(shop_btn_rect.x), i32(shop_btn_rect.y), rl.WHITE)
     mouse_pos := rl.GetMousePosition()
@@ -219,7 +221,17 @@ shop_scene :: proc() {
     rl.DrawText("Skins", 70, 120, 30, rl.BLUE) // BLUE because it is active
     rl.DrawText("Enemy shapes", 280, 120, 30, rl.BLACK)
     rl.DrawText("Backgrounds",  570, 120, 30, rl.BLACK)
-    
+
+    mouse_pos := rl.GetMousePosition()
+    if rl.IsMouseButtonPressed(rl.MouseButton.LEFT) {
+        if rl.CheckCollisionPointRec(mouse_pos, shop_enemy_shapes_btn_rect) {
+            fmt.println("enemy shop")
+        }
+        if rl.CheckCollisionPointRec(mouse_pos, shop_backgrounds_btn_rect) {
+            fmt.println("backgrounds shop")
+        }
+    }
+
     rl.EndDrawing()
 }
 
