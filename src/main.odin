@@ -30,6 +30,7 @@ shop_btn_rect := rl.Rectangle{}
 shop_skins_btn_rect := rl.Rectangle{ x = 70, y = 120, width = 78, height = 30 } 
 shop_enemy_shapes_btn_rect := rl.Rectangle{ x = 280, y = 120, width = 210, height = 30 }
 shop_backgrounds_btn_rect := rl.Rectangle{ x = 570, y = 120, width = 198, height = 30 }
+shop_exit_btn_rect := rl.Rectangle{}
 
 // GAME_SCENE, SHOP_SCENE, SHOP_ENEMY_SHAPES_SCENE, SHOP_BACKGROUNDS_SCENE
 current_scene := "GAME_SCENE"
@@ -61,6 +62,9 @@ init :: proc() {
     }
     shop_btn_rect = rl.Rectangle{
         x = f32(rl.GetScreenWidth() - 70), y = 5, width = 32, height = 32
+    }
+    shop_exit_btn_rect = rl.Rectangle{
+        x = f32(rl.GetScreenWidth() - 40), y = -12, width = 70, height = 70
     }
 }
 
@@ -218,9 +222,25 @@ game_scene :: proc(player_sprite: rl.Texture2D, restart_btn_sprite: rl.Texture2D
 
 shop_layout :: proc(active: string) {
     rl.DrawText("Shop", 270, 10, 100, rl.BLACK)
-    rl.DrawText("Skins", 70, 120, 30, active == "skins" ? rl.BLUE : rl.BLACK)
-    rl.DrawText("Enemy shapes", 280, 120, 30, active == "enemy_shapes" ? rl.BLUE : rl.BLACK)
-    rl.DrawText("Backgrounds",  570, 120, 30, active == "backgrounds" ? rl.BLUE : rl.BLACK)
+    rl.DrawText(
+        "Skins", i32(shop_skins_btn_rect.x), 
+        i32(shop_skins_btn_rect.y), i32(shop_skins_btn_rect.height), 
+        active == "skins" ? rl.BLUE : rl.BLACK
+    )
+    rl.DrawText(
+        "Enemy shapes", i32(shop_enemy_shapes_btn_rect.x), 
+        i32(shop_enemy_shapes_btn_rect.y), i32(shop_enemy_shapes_btn_rect.height), 
+        active == "enemy_shapes" ? rl.BLUE : rl.BLACK
+    )
+    rl.DrawText(
+        "Backgrounds",  i32(shop_backgrounds_btn_rect.x), 
+        i32(shop_backgrounds_btn_rect.y), i32(shop_backgrounds_btn_rect.height), 
+        active == "backgrounds" ? rl.BLUE : rl.BLACK
+    )
+    rl.DrawText(
+        "x", i32(shop_exit_btn_rect.x), i32(shop_exit_btn_rect.y), 
+        i32(shop_exit_btn_rect.width), rl.BLACK
+    )
 
     mouse_pos := rl.GetMousePosition()
     if rl.IsMouseButtonPressed(rl.MouseButton.LEFT) {
@@ -238,6 +258,9 @@ shop_layout :: proc(active: string) {
             if rl.CheckCollisionPointRec(mouse_pos, shop_skins_btn_rect) {
                 current_scene = "SHOP_SCENE"
             }
+        }
+        if rl.CheckCollisionPointRec(mouse_pos, shop_exit_btn_rect) {
+            current_scene = "GAME_SCENE"
         }
     }
 }
