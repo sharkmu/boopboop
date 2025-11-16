@@ -18,3 +18,6 @@
 - [ ] Implement a player resizing system
     - [ ] After every completed level the player's size increases a bit
     - [ ] If the player pushes out an enemy that is bigger than the player, then the player's size and money instantly decreases a bit
+
+# Fix tasks
+- [ ] Better centering for texts. Use `rl.MeasureText()` to get better width values
