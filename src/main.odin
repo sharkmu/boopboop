@@ -4,7 +4,6 @@ import rl "vendor:raylib"
 import "core:math/rand"
 import "core:encoding/cbor"
 import "core:os"
-import "core:time"
 import "core:fmt" // for debugging
 
 
@@ -216,7 +215,10 @@ shop_scene :: proc() {
     rl.BeginDrawing()
     rl.ClearBackground(rl.BEIGE)
 
-    rl.DrawText("Shop", 100, 100, 100, rl.WHITE)
+    rl.DrawText("Shop", 270, 10, 100, rl.BLACK)
+    rl.DrawText("Skins", 70, 120, 30, rl.BLUE) // BLUE because it is active
+    rl.DrawText("Enemy shapes", 280, 120, 30, rl.BLACK)
+    rl.DrawText("Backgrounds",  570, 120, 30, rl.BLACK)
     
     rl.EndDrawing()
 }
