@@ -133,7 +133,7 @@ game_scene :: proc(player_sprite: rl.Texture2D, restart_btn_sprite: rl.Texture2D
     player_rec := rl.Rectangle {
         x = player.pos.x,
         y = player.pos.y,
-             width = f32(player_sprite.width),
+        width = f32(player_sprite.width),
         height = f32(player_sprite.height),
     }
     
