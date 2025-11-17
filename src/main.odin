@@ -32,6 +32,19 @@ shop_enemy_shapes_btn_rect := rl.Rectangle{ x = 280, y = 120, width = 210, heigh
 shop_backgrounds_btn_rect := rl.Rectangle{ x = 570, y = 120, width = 198, height = 30 }
 shop_exit_btn_rect := rl.Rectangle{}
 
+// Textures - sprites
+// Player skins
+player_banana_texture : rl.Texture2D
+player_ding_texture : rl.Texture2D
+
+// UI elements
+restart_btn_texture : rl.Texture2D
+shop_btn_texture : rl.Texture2D
+
+// Backgrounds
+bg_colourful_bracket_texture : rl.Texture2D
+bg_linear_circles_texture : rl.Texture2D
+
 // GAME_SCENE, SHOP_SCENE, SHOP_ENEMY_SHAPES_SCENE, SHOP_BACKGROUNDS_SCENE
 current_scene := "GAME_SCENE"
 
@@ -66,6 +79,14 @@ init :: proc() {
     shop_exit_btn_rect = rl.Rectangle{
         x = f32(rl.GetScreenWidth() - 40), y = -12, width = 70, height = 70
     }
+
+    // Load textures
+    player_banana_texture = rl.LoadTexture("assets/player_banana.png")
+    player_ding_texture = rl.LoadTexture("assets/player_ding.png")
+    restart_btn_texture = rl.LoadTexture("assets/restart_button.png")
+    shop_btn_texture = rl.LoadTexture("assets/shop_button.png")
+    bg_colourful_bracket_texture = rl.LoadTexture("assets/bg_colourful_bracket.png")
+    bg_linear_circles_texture = rl.LoadTexture("assets/bg_linear_circles.png")
 }
 
 rand_num :: proc(min: f32, max: f32) -> f32 {
@@ -107,14 +128,10 @@ save_game_data :: proc(data: SaveData) {
 
 main :: proc() {
     init()
-
-    player_sprite := rl.LoadTexture("assets/player_ding.png")
-    restart_button_sprite := rl.LoadTexture("assets/restart_button.png")
-    shop_button_sprite := rl.LoadTexture("assets/shop_button.png")
     
     for !rl.WindowShouldClose() {
         switch current_scene {
-            case "GAME_SCENE": game_scene(player_sprite, restart_button_sprite, shop_button_sprite)
+            case "GAME_SCENE": game_scene()
             case "SHOP_SCENE": shop_scene()
             case "SHOP_ENEMY_SHAPES_SCENE": shop_enemy_shapes_scene()
             case "SHOP_BACKGROUNDS_SCENE": shop_backgrounds_scene()
@@ -123,18 +140,18 @@ main :: proc() {
     rl.CloseWindow()
 }
 
-game_scene :: proc(player_sprite: rl.Texture2D, restart_btn_sprite: rl.Texture2D, shop_btn_sprite: rl.Texture2D) {
+game_scene :: proc() {
     rl.BeginDrawing()
     rl.ClearBackground(game_data.level_colour)
 
     // Player
     player_movement()
-    rl.DrawTexture(player_sprite, i32(player.pos.x), i32(player.pos.y), player.colour)
+    rl.DrawTexture(player_ding_texture, i32(player.pos.x), i32(player.pos.y), player.colour)
     player_rec := rl.Rectangle {
         x = player.pos.x,
         y = player.pos.y,
-        width = f32(player_sprite.width),
-        height = f32(player_sprite.height),
+        width = f32(player_ding_texture.width),
+        height = f32(player_ding_texture.height),
     }
     
     // Enemy
@@ -204,8 +221,8 @@ game_scene :: proc(player_sprite: rl.Texture2D, restart_btn_sprite: rl.Texture2D
         }
     }
 
-    rl.DrawTexture(restart_btn_sprite, i32(restart_btn_rect.x), i32(restart_btn_rect.y), rl.WHITE)
-    rl.DrawTexture(shop_btn_sprite, i32(shop_btn_rect.x), i32(shop_btn_rect.y), rl.WHITE)
+    rl.DrawTexture(restart_btn_texture, i32(restart_btn_rect.x), i32(restart_btn_rect.y), rl.WHITE)
+    rl.DrawTexture(shop_btn_texture, i32(shop_btn_rect.x), i32(shop_btn_rect.y), rl.WHITE)
     mouse_pos := rl.GetMousePosition()
     if rl.IsMouseButtonPressed(rl.MouseButton.LEFT) {
         if rl.CheckCollisionPointRec(mouse_pos, restart_btn_rect) {
