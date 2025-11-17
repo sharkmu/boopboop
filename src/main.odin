@@ -108,7 +108,7 @@ save_game_data :: proc(data: SaveData) {
 main :: proc() {
     init()
 
-    player_sprite := rl.LoadTexture("assets/player.png")
+    player_sprite := rl.LoadTexture("assets/player_ding.png")
     restart_button_sprite := rl.LoadTexture("assets/restart_button.png")
     shop_button_sprite := rl.LoadTexture("assets/shop_button.png")
     
