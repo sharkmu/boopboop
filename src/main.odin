@@ -40,6 +40,9 @@ player_ding_texture : rl.Texture2D
 // UI elements
 restart_btn_texture : rl.Texture2D
 shop_btn_texture : rl.Texture2D
+buy_btn_green_texture : rl.Texture2D
+buy_btn_red_texture : rl.Texture2D
+owned_text_texture : rl.Texture2D
 
 // Backgrounds
 bg_colourful_bracket_texture : rl.Texture2D
@@ -85,6 +88,9 @@ init :: proc() {
     player_ding_texture = rl.LoadTexture("assets/player_ding.png")
     restart_btn_texture = rl.LoadTexture("assets/restart_button.png")
     shop_btn_texture = rl.LoadTexture("assets/shop_button.png")
+    buy_btn_green_texture = rl.LoadTexture("assets/buy_button_green.png")
+    buy_btn_red_texture = rl.LoadTexture("assets/buy_button_red.png")
+    owned_text_texture = rl.LoadTexture("assets/owned_text.png")
     bg_colourful_bracket_texture = rl.LoadTexture("assets/bg_colourful_bracket.png")
     bg_linear_circles_texture = rl.LoadTexture("assets/bg_linear_circles.png")
 }
@@ -287,6 +293,17 @@ shop_scene :: proc() {
     rl.ClearBackground(rl.BEIGE)
 
     shop_layout("skins")
+
+    rl.DrawTextureEx(player_banana_texture, {f32(rl.GetScreenWidth())/2 - 150, 250}, 0, 1.5, rl.YELLOW)
+    rl.DrawText("Banana", rl.GetScreenWidth()/2-160, 350, 30, rl.BLACK)
+    rl.DrawTexture(
+        game_data.money >= 100 ? buy_btn_green_texture : buy_btn_red_texture, 
+        rl.GetScreenWidth()/2-140, 380, rl.WHITE
+    )
+
+    rl.DrawTextureEx(player_ding_texture, {f32(rl.GetScreenWidth())/2 + 150, 250}, 0, 1.5, rl.YELLOW)
+    rl.DrawText("Ding", rl.GetScreenWidth()/2+170, 350, 30, rl.BLACK)
+    rl.DrawTexture(owned_text_texture, rl.GetScreenWidth()/2+170, 380, rl.WHITE) // Default character
 
     rl.EndDrawing()
 }
