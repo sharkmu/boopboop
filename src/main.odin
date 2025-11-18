@@ -31,6 +31,7 @@ shop_skins_btn_rect := rl.Rectangle{ x = 70, y = 120, width = 78, height = 30 }
 shop_enemy_shapes_btn_rect := rl.Rectangle{ x = 280, y = 120, width = 210, height = 30 }
 shop_backgrounds_btn_rect := rl.Rectangle{ x = 570, y = 120, width = 198, height = 30 }
 shop_exit_btn_rect := rl.Rectangle{}
+btn_banana_rect := rl.Rectangle{}
 
 // Textures - sprites
 // Player skins
@@ -56,6 +57,7 @@ SaveData :: struct {
     score: i32,
     level: i32,
     level_colour: rl.Color,
+    owned_skins : [dynamic]string,
 }
 
 game_data := SaveData{level=1, level_colour=rl.BLUE}
@@ -81,6 +83,9 @@ init :: proc() {
     }
     shop_exit_btn_rect = rl.Rectangle{
         x = f32(rl.GetScreenWidth() - 40), y = -12, width = 70, height = 70
+    }
+    btn_banana_rect = rl.Rectangle{
+        x = f32(rl.GetScreenWidth()/2 - 140), y = 380, width = 64, height = 32
     }
 
     // Load textures
@@ -294,16 +299,33 @@ shop_scene :: proc() {
 
     shop_layout("skins")
 
+    banana_owned := false
+
+    for skin in game_data.owned_skins {
+        if skin == "banana" {
+            banana_owned = true
+        }
+    }
+
     rl.DrawTextureEx(player_banana_texture, {f32(rl.GetScreenWidth())/2 - 150, 250}, 0, 1.5, rl.YELLOW)
     rl.DrawText("Banana", rl.GetScreenWidth()/2-160, 350, 30, rl.BLACK)
     rl.DrawTexture(
-        game_data.money >= 100 ? buy_btn_green_texture : buy_btn_red_texture, 
+        banana_owned ? owned_text_texture : (game_data.money >= 100 ? buy_btn_green_texture : buy_btn_red_texture), 
         rl.GetScreenWidth()/2-140, 380, rl.WHITE
     )
 
     rl.DrawTextureEx(player_ding_texture, {f32(rl.GetScreenWidth())/2 + 150, 250}, 0, 1.5, rl.YELLOW)
     rl.DrawText("Ding", rl.GetScreenWidth()/2+170, 350, 30, rl.BLACK)
     rl.DrawTexture(owned_text_texture, rl.GetScreenWidth()/2+170, 380, rl.WHITE) // Default character
+
+    if !banana_owned {
+        mouse_pos := rl.GetMousePosition()
+        if rl.IsMouseButtonPressed(rl.MouseButton.LEFT) && rl.CheckCollisionPointRec(mouse_pos, btn_banana_rect){
+            game_data.money -= 100
+            append(&game_data.owned_skins, "banana")
+            save_game_data(game_data)
+        }
+    }
 
     rl.EndDrawing()
 }
