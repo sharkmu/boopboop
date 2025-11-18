@@ -32,6 +32,7 @@ shop_enemy_shapes_btn_rect := rl.Rectangle{ x = 280, y = 120, width = 210, heigh
 shop_backgrounds_btn_rect := rl.Rectangle{ x = 570, y = 120, width = 198, height = 30 }
 shop_exit_btn_rect := rl.Rectangle{}
 btn_banana_rect := rl.Rectangle{}
+use_buttons_rects := [dynamic]rl.Rectangle{}
 
 // Textures - sprites
 // Player skins
@@ -44,6 +45,8 @@ shop_btn_texture : rl.Texture2D
 buy_btn_green_texture : rl.Texture2D
 buy_btn_red_texture : rl.Texture2D
 owned_text_texture : rl.Texture2D
+use_btn_texture : rl.Texture2D
+using_btn_texture : rl.Texture2D
 
 // Backgrounds
 bg_colourful_bracket_texture : rl.Texture2D
@@ -58,6 +61,7 @@ SaveData :: struct {
     level: i32,
     level_colour: rl.Color,
     owned_skins : [dynamic]string,
+    using_skin : string,
 }
 
 game_data := SaveData{level=1, level_colour=rl.BLUE}
@@ -87,6 +91,13 @@ init :: proc() {
     btn_banana_rect = rl.Rectangle{
         x = f32(rl.GetScreenWidth()/2 - 140), y = 380, width = 64, height = 32
     }
+    append(&use_buttons_rects, rl.Rectangle{
+        x = f32(rl.GetScreenWidth()/2 - 140), y = 420, width = 64, height = 32
+    })
+    append(&use_buttons_rects, rl.Rectangle{
+        x = f32(rl.GetScreenWidth()/2 + 170), y = 420, width = 64, height = 32
+    })
+
 
     // Load textures
     player_banana_texture = rl.LoadTexture("assets/player_banana.png")
@@ -98,6 +109,8 @@ init :: proc() {
     owned_text_texture = rl.LoadTexture("assets/owned_text.png")
     bg_colourful_bracket_texture = rl.LoadTexture("assets/bg_colourful_bracket.png")
     bg_linear_circles_texture = rl.LoadTexture("assets/bg_linear_circles.png")
+    use_btn_texture = rl.LoadTexture("assets/use_button.png")
+    using_btn_texture = rl.LoadTexture("assets/using_button.png")
 }
 
 rand_num :: proc(min: f32, max: f32) -> f32 {
@@ -157,7 +170,10 @@ game_scene :: proc() {
 
     // Player
     player_movement()
-    rl.DrawTexture(player_ding_texture, i32(player.pos.x), i32(player.pos.y), player.colour)
+    rl.DrawTexture(
+        game_data.using_skin == "banana" ? player_banana_texture : player_ding_texture,
+        i32(player.pos.x), i32(player.pos.y), player.colour
+    )
     player_rec := rl.Rectangle {
         x = player.pos.x,
         y = player.pos.y,
@@ -313,16 +329,38 @@ shop_scene :: proc() {
         banana_owned ? owned_text_texture : (game_data.money >= 100 ? buy_btn_green_texture : buy_btn_red_texture), 
         rl.GetScreenWidth()/2-140, 380, rl.WHITE
     )
+    if banana_owned {
+        rl.DrawTexture(
+            game_data.using_skin == "banana" ? using_btn_texture : use_btn_texture, 
+            i32(use_buttons_rects[0].x), i32(use_buttons_rects[0].y), rl.WHITE
+        )
+    }
 
     rl.DrawTextureEx(player_ding_texture, {f32(rl.GetScreenWidth())/2 + 150, 250}, 0, 1.5, rl.YELLOW)
     rl.DrawText("Ding", rl.GetScreenWidth()/2+170, 350, 30, rl.BLACK)
     rl.DrawTexture(owned_text_texture, rl.GetScreenWidth()/2+170, 380, rl.WHITE) // Default character
+    rl.DrawTexture(
+        game_data.using_skin == "banana" ? use_btn_texture : using_btn_texture, 
+        i32(use_buttons_rects[1].x), i32(use_buttons_rects[1].y), rl.WHITE
+    )
 
-    if !banana_owned {
-        mouse_pos := rl.GetMousePosition()
-        if rl.IsMouseButtonPressed(rl.MouseButton.LEFT) && rl.CheckCollisionPointRec(mouse_pos, btn_banana_rect){
+    mouse_pos := rl.GetMousePosition()
+    if rl.IsMouseButtonPressed(rl.MouseButton.LEFT) {
+        if rl.CheckCollisionPointRec(mouse_pos, btn_banana_rect) && !banana_owned{
             game_data.money -= 100
             append(&game_data.owned_skins, "banana")
+            save_game_data(game_data)
+        }
+        if rl.CheckCollisionPointRec(mouse_pos, use_buttons_rects[0]) && 
+           game_data.using_skin != "banana" && banana_owned == true
+        {
+            game_data.using_skin = "banana"
+            save_game_data(game_data)
+        }
+        if rl.CheckCollisionPointRec(mouse_pos, use_buttons_rects[1]) && 
+           game_data.using_skin == "banana"
+        {
+            game_data.using_skin = "ding"
             save_game_data(game_data)
         }
     }
