@@ -11,6 +11,7 @@
     - [x] Display level number in the UI (`DrawText`)
 - [x] Add ability to restart the level
 - [ ] Add shop where the player can spend his/her money
+    - [ ] Show prices
 - [ ] Add a timer
     - [ ] If the time runs out the player fails the level, have the ability to restart it
         - [ ] Have the ability to skip the level for a set amount of money * level number
