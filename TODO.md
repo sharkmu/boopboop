@@ -25,3 +25,4 @@
 # Fix tasks
 - [ ] Better centering for texts. Use `rl.MeasureText()` to get better width values
 - [ ] Better collision detection for banana player
+- [ ] Fix next level logic, there are some bugs with the text and stuff
