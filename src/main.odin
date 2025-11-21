@@ -16,6 +16,7 @@ Character :: struct {
 
 player := Character{}
 player_direction := "LEFT" // LEFT, RIGHT, UP, DOWN
+player_speed: f32
 
 enemies: [dynamic]Character
 too_many_enemies := false
@@ -552,28 +553,53 @@ shop_backgrounds_scene :: proc() {
 }
 
 player_movement :: proc() {
+    if (player.pos.x > 0) && !any_collision && player_direction == "LEFT" {
+        player.pos.x -= player_speed * 100 * rl.GetFrameTime()
+    }
+    if player.pos.x < f32(rl.GetScreenWidth() - 64) && !any_collision && 
+       player_direction == "RIGHT" 
+    {
+        player.pos.x += player_speed * 100 * rl.GetFrameTime()
+    }
+    if player.pos.y > 0 && !any_collision && player_direction == "UP" {
+        player.pos.y -= player_speed * 100 * rl.GetFrameTime()
+    }
+    if player.pos.y < f32(rl.GetScreenHeight() - 64) && !any_collision && 
+       player_direction == "DOWN" 
+    {
+        player.pos.y += player_speed * 100 * rl.GetFrameTime()
+    }
+
     if rl.IsKeyDown(.A) || rl.IsKeyDown(.LEFT) {
-        if(player.pos.x > 0) && !any_collision {
-            player.pos.x -= 400 * rl.GetFrameTime()
-            player_direction = "LEFT"
+        if player_speed <= 5 {
+            player_speed += 0.5
         }
+        player_direction = "LEFT"
     }
-    if rl.IsKeyDown(.D) || rl.IsKeyDown(.RIGHT) {
-        if player.pos.x < f32(rl.GetScreenWidth() - 64) && !any_collision {
-            player.pos.x += 400 * rl.GetFrameTime()
-            player_direction = "RIGHT"
+    else if rl.IsKeyDown(.D) || rl.IsKeyDown(.RIGHT) {
+        if player_speed <= 5 {
+            player_speed += 0.5
         }
+        player_direction = "RIGHT"
     }
-    if rl.IsKeyDown(.W) || rl.IsKeyDown(.UP) {
-        if player.pos.y > 0 && !any_collision {
-            player.pos.y -= 400 * rl.GetFrameTime()
-            player_direction = "UP"
+    else if rl.IsKeyDown(.W) || rl.IsKeyDown(.UP) {
+        if player_speed <= 5 {
+            player_speed += 0.5
         }
+        player_direction = "UP"
     }
-    if rl.IsKeyDown(.S) || rl.IsKeyDown(.DOWN) {
-        if player.pos.y < f32(rl.GetScreenHeight() - 64) && !any_collision {
-            player.pos.y += 400 * rl.GetFrameTime()
-            player_direction = "DOWN"
+    else if rl.IsKeyDown(.S) || rl.IsKeyDown(.DOWN) {
+        if player_speed <= 5 {
+            player_speed += 0.5
+        }
+        player_direction = "DOWN"
+    }
+    else {
+        if player_speed > 0 {
+            player_speed -= 40 * rl.GetFrameTime()
+            if player_speed < 0 {
+                player_speed = 0
+            }
         }
     }
     if rl.IsKeyDown((.SPACE)) { next_level() }
