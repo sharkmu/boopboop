@@ -49,21 +49,23 @@ use_btn_texture : rl.Texture2D
 using_btn_texture : rl.Texture2D
 
 // Backgrounds
-bg_colourful_bracket_texture : rl.Texture2D
 bg_linear_circles_texture : rl.Texture2D
 
 // GAME_SCENE, SHOP_SCENE, SHOP_ENEMY_SHAPES_SCENE, SHOP_BACKGROUNDS_SCENE
 current_scene := "GAME_SCENE"
 
+// Owned items are a list, so that in the future if there are more of it, it will be is compatible
 SaveData :: struct {
     money: i32,
     score: i32,
     level: i32,
     level_colour: rl.Color,
-    owned_skins : [dynamic]string, // List, so that in the future if there are more skins it is compatible
+    owned_skins : [dynamic]string,
     using_skin : string,
-    owned_enemy_shapes : [dynamic]string, // List, so that in the future if there are more shapes it is compatible
-    using_enemy_shape : string
+    owned_enemy_shapes : [dynamic]string,
+    using_enemy_shape : string,
+    owned_backgrounds: [dynamic]string,
+    using_background: string
 }
 
 game_data := SaveData{level=1, level_colour=rl.BLUE}
@@ -109,7 +111,6 @@ init :: proc() {
     buy_btn_green_texture = rl.LoadTexture("assets/buy_button_green.png")
     buy_btn_red_texture = rl.LoadTexture("assets/buy_button_red.png")
     owned_text_texture = rl.LoadTexture("assets/owned_text.png")
-    bg_colourful_bracket_texture = rl.LoadTexture("assets/bg_colourful_bracket.png")
     bg_linear_circles_texture = rl.LoadTexture("assets/bg_linear_circles.png")
     use_btn_texture = rl.LoadTexture("assets/use_button.png")
     using_btn_texture = rl.LoadTexture("assets/using_button.png")
@@ -168,7 +169,12 @@ main :: proc() {
 
 game_scene :: proc() {
     rl.BeginDrawing()
-    rl.ClearBackground(game_data.level_colour)
+    
+    if game_data.using_background == "linear_circles" {
+        rl.DrawTextureEx(bg_linear_circles_texture, {0,0}, 0, 1, rl.WHITE)
+    } else {
+        rl.ClearBackground(game_data.level_colour)
+    }
 
     // Player
     player_movement()
@@ -446,7 +452,7 @@ shop_enemy_shapes_scene :: proc() {
 
     rl.DrawRectangleV({f32(rl.GetScreenWidth())/2 + 180, 280}, 50, rl.BLUE)
     rl.DrawText("Rectangle", rl.GetScreenWidth()/2+130, 350, 30, rl.BLACK)
-    rl.DrawTexture(owned_text_texture, rl.GetScreenWidth()/2+170, 380, rl.WHITE) // Default character
+    rl.DrawTexture(owned_text_texture, rl.GetScreenWidth()/2+170, 380, rl.WHITE) // Default shape
     rl.DrawTexture(
         game_data.using_enemy_shape == "circle" ? use_btn_texture : using_btn_texture, 
         i32(use_buttons_rects[1].x), i32(use_buttons_rects[1].y), rl.WHITE
@@ -483,6 +489,58 @@ shop_backgrounds_scene :: proc() {
     rl.ClearBackground(rl.BEIGE)
 
     shop_layout("backgrounds")
+
+    linear_circles_owned := false
+
+    for bg in game_data.owned_backgrounds {
+        if bg == "linear_circles" {
+            linear_circles_owned = true
+        }
+    }
+
+    rl.DrawTextureEx(bg_linear_circles_texture, {f32(rl.GetScreenWidth())/2 - 150, 270}, 0, 0.12, rl.WHITE)
+    rl.DrawText("Linear Circles", rl.GetScreenWidth()/2-200, 350, 30, rl.BLACK)
+    rl.DrawTexture(
+        linear_circles_owned ? owned_text_texture : (game_data.money >= 150 ? buy_btn_green_texture : buy_btn_red_texture), 
+        rl.GetScreenWidth()/2-140, 380, rl.WHITE
+    )
+    if linear_circles_owned {
+        rl.DrawTexture(
+            game_data.using_background == "linear_circles" ? using_btn_texture : use_btn_texture, 
+            i32(use_buttons_rects[0].x), i32(use_buttons_rects[0].y), rl.WHITE
+        )
+    }
+
+    rl.DrawRectangleV({f32(rl.GetScreenWidth())/2 + 155, 270}, {100, 70}, rl.BLUE)
+    rl.DrawText("Solid Colour", rl.GetScreenWidth()/2+120, 350, 30, rl.BLACK)
+    rl.DrawTexture(owned_text_texture, rl.GetScreenWidth()/2+170, 380, rl.WHITE) // Default bg
+    rl.DrawTexture(
+        game_data.using_background == "linear_circles" ? use_btn_texture : using_btn_texture, 
+        i32(use_buttons_rects[1].x), i32(use_buttons_rects[1].y), rl.WHITE
+    )
+
+    mouse_pos := rl.GetMousePosition()
+    if rl.IsMouseButtonPressed(rl.MouseButton.LEFT) {
+        if rl.CheckCollisionPointRec(mouse_pos, btn_banana_rect) && !linear_circles_owned && 
+           game_data.money >= 100
+        {
+            game_data.money -= 100
+            append(&game_data.owned_backgrounds, "linear_circles")
+            save_game_data(game_data)
+        }
+        if rl.CheckCollisionPointRec(mouse_pos, use_buttons_rects[0]) && 
+           game_data.using_background != "linear_circles" && linear_circles_owned == true
+        {
+            game_data.using_background = "linear_circles"
+            save_game_data(game_data)
+        }
+        if rl.CheckCollisionPointRec(mouse_pos, use_buttons_rects[1]) && 
+           game_data.using_background == "linear_circles"
+        {
+            game_data.using_background = "solid_colour"
+            save_game_data(game_data)
+        }
+    }
 
     rl.EndDrawing()
 }
