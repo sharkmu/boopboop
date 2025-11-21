@@ -571,32 +571,44 @@ player_movement :: proc() {
     }
 
     if rl.IsKeyDown(.A) || rl.IsKeyDown(.LEFT) {
-        if player_speed <= 5 {
-            player_speed += 0.5
+        if player_speed < 3 {
+            player_speed += 5 * rl.GetFrameTime()
+        }
+        if player_speed > 3 && player_speed <= 5.5 {
+            player_speed += 10 * rl.GetFrameTime()
         }
         player_direction = "LEFT"
     }
     else if rl.IsKeyDown(.D) || rl.IsKeyDown(.RIGHT) {
-        if player_speed <= 5 {
-            player_speed += 0.5
+        if player_speed < 3 {
+            player_speed += 5 * rl.GetFrameTime()
+        }
+        if player_speed > 3 && player_speed <= 5.5 {
+            player_speed += 10 * rl.GetFrameTime()
         }
         player_direction = "RIGHT"
     }
     else if rl.IsKeyDown(.W) || rl.IsKeyDown(.UP) {
-        if player_speed <= 5 {
-            player_speed += 0.5
+        if player_speed < 3 {
+            player_speed += 5 * rl.GetFrameTime()
+        }
+        if player_speed > 3 && player_speed <= 5.5 {
+            player_speed += 10 * rl.GetFrameTime()
         }
         player_direction = "UP"
     }
     else if rl.IsKeyDown(.S) || rl.IsKeyDown(.DOWN) {
-        if player_speed <= 5 {
-            player_speed += 0.5
+        if player_speed < 3 {
+            player_speed += 5 * rl.GetFrameTime()
+        }
+        if player_speed > 3 && player_speed <= 5.5 {
+            player_speed += 10 * rl.GetFrameTime()
         }
         player_direction = "DOWN"
     }
     else {
         if player_speed > 0 {
-            player_speed -= 40 * rl.GetFrameTime()
+            player_speed -= 35 * rl.GetFrameTime()
             if player_speed < 0 {
                 player_speed = 0
             }
