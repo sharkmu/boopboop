@@ -387,6 +387,8 @@ shop_scene :: proc() {
             game_data.using_skin == "banana" ? using_btn_texture : use_btn_texture, 
             i32(use_buttons_rects[0].x), i32(use_buttons_rects[0].y), rl.WHITE
         )
+    } else {
+        rl.DrawText("$100", rl.GetScreenWidth()/2 - 140, 420, 30, rl.DARKGREEN)
     }
 
     rl.DrawTextureEx(player_ding_texture, {f32(rl.GetScreenWidth())/2 + 150, 250}, 0, 1.5, rl.YELLOW)
@@ -448,6 +450,8 @@ shop_enemy_shapes_scene :: proc() {
             game_data.using_enemy_shape == "circle" ? using_btn_texture : use_btn_texture, 
             i32(use_buttons_rects[0].x), i32(use_buttons_rects[0].y), rl.WHITE
         )
+    } else {
+        rl.DrawText("$50", rl.GetScreenWidth()/2 - 135, 420, 30, rl.DARKGREEN)
     }
 
     rl.DrawRectangleV({f32(rl.GetScreenWidth())/2 + 180, 280}, 50, rl.BLUE)
@@ -509,6 +513,8 @@ shop_backgrounds_scene :: proc() {
             game_data.using_background == "linear_circles" ? using_btn_texture : use_btn_texture, 
             i32(use_buttons_rects[0].x), i32(use_buttons_rects[0].y), rl.WHITE
         )
+    } else {
+        rl.DrawText("$150", rl.GetScreenWidth()/2 - 140, 420, 30, rl.DARKGREEN)
     }
 
     rl.DrawRectangleV({f32(rl.GetScreenWidth())/2 + 155, 270}, {100, 70}, rl.BLUE)
