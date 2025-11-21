@@ -4,6 +4,7 @@ import rl "vendor:raylib"
 import "core:math/rand"
 import "core:encoding/cbor"
 import "core:os"
+import "core:math"
 import "core:fmt" // for debugging
 
 
@@ -24,6 +25,8 @@ any_collision := false
 
 show_level_text := false
 level_text_timer: f32 = 2.0
+current_time: f64
+extra_time: f64
 
 // UI rectangles
 restart_btn_rect := rl.Rectangle{}
@@ -34,6 +37,7 @@ shop_backgrounds_btn_rect := rl.Rectangle{ x = 570, y = 120, width = 198, height
 shop_exit_btn_rect := rl.Rectangle{}
 btn_banana_rect := rl.Rectangle{}
 use_buttons_rects := [dynamic]rl.Rectangle{}
+lost_restart_btn_rect := rl.Rectangle{}
 
 // Textures - sprites
 // Player skins
@@ -102,7 +106,10 @@ init :: proc() {
     append(&use_buttons_rects, rl.Rectangle{
         x = f32(rl.GetScreenWidth()/2 + 170), y = 420, width = 64, height = 32
     })
-
+    lost_restart_btn_rect = rl.Rectangle{
+        x = f32(rl.GetScreenWidth()/2-70), y = f32(rl.GetScreenHeight()/2),
+        width = 32*3.5, height = 32*3.5 // multipled by 3.5 to match scaling
+    }
 
     // Load textures
     player_banana_texture = rl.LoadTexture("assets/player_banana.png")
@@ -160,6 +167,7 @@ main :: proc() {
     for !rl.WindowShouldClose() {
         switch current_scene {
             case "GAME_SCENE": game_scene()
+            case "LOST_SCENE": lost_scene()
             case "SHOP_SCENE": shop_scene()
             case "SHOP_ENEMY_SHAPES_SCENE": shop_enemy_shapes_scene()
             case "SHOP_BACKGROUNDS_SCENE": shop_backgrounds_scene()
@@ -169,6 +177,7 @@ main :: proc() {
 }
 
 game_scene :: proc() {
+    current_time = rl.GetTime() - extra_time
     rl.BeginDrawing()
     
     if game_data.using_background == "linear_circles" {
@@ -293,6 +302,7 @@ game_scene :: proc() {
     rl.DrawText(fmt.ctprint("Money:", game_data.money), 10, 10, 30, rl.BLACK)
     rl.DrawText(fmt.ctprint("Score:", game_data.score), 10, 50, 30, rl.BLACK)
     rl.DrawText(fmt.ctprint("Level:", game_data.level), 10, 90, 30, rl.BLACK)
+    rl.DrawText(fmt.ctprint("Time:", math.floor(60-current_time)), 10, 130, 30, rl.BLACK)
     if show_level_text {
         frameTime := rl.GetFrameTime()
         rl.DrawText("New Level!", 250, 200, 60, rl.YELLOW)
@@ -312,6 +322,31 @@ game_scene :: proc() {
         if rl.CheckCollisionPointRec(mouse_pos, shop_btn_rect) {
             rl.EndDrawing()
             current_scene = "SHOP_SCENE"
+        }
+    }
+
+    if 60 - current_time <= 0 {
+        rl.EndDrawing()
+        current_scene = "LOST_SCENE"
+    }
+
+    rl.EndDrawing()
+}
+
+lost_scene :: proc() {
+    rl.BeginDrawing()
+    rl.ClearBackground(rl.Color{35, 70, 18, u8(0.8)})
+
+    rl.DrawText("You lost!", rl.GetScreenWidth()/2-220, rl.GetScreenHeight()/2-150, 100, rl.RED)
+    rl.DrawTextureEx(
+        restart_btn_texture, {f32(rl.GetScreenWidth()/2-70), f32(rl.GetScreenHeight()/2)}, 
+        0, 3.5, rl.WHITE
+    )
+    mouse_pos := rl.GetMousePosition()
+    if rl.IsMouseButtonPressed(rl.MouseButton.LEFT) {
+        if rl.CheckCollisionPointRec(mouse_pos, lost_restart_btn_rect) {
+            current_scene = "GAME_SCENE"
+            restart_level()
         }
     }
 
@@ -656,6 +691,8 @@ next_level :: proc() {
     generate_enemy(1)
 
     show_level_text = true
+
+    extra_time = rl.GetTime()
 }
 
 restart_level :: proc() {
@@ -663,4 +700,6 @@ restart_level :: proc() {
     delete(enemies)
     enemies = nil
     generate_enemy(1)
+
+    extra_time = rl.GetTime()
 }
