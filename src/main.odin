@@ -394,6 +394,7 @@ shop_layout :: proc(active: string) {
         }
         if rl.CheckCollisionPointRec(mouse_pos, shop_exit_btn_rect) {
             current_scene = "GAME_SCENE"
+            extra_time = rl.GetTime() - current_time
         }
     }
 }
