@@ -305,7 +305,8 @@ game_scene :: proc() {
     rl.DrawText(fmt.ctprint("Time:", math.floor(60-current_time)), 10, 130, 30, rl.BLACK)
     if show_level_text {
         frameTime := rl.GetFrameTime()
-        rl.DrawText("New Level!", 250, 200, 60, rl.YELLOW)
+        rl.DrawText("New Level!", 250, 200, 67, rl.BLACK)
+        rl.DrawText("New Level!", 253, 200, 65, rl.ORANGE)
         level_text_timer -= frameTime
         if level_text_timer <= 0 {
             show_level_text = false
