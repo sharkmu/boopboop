@@ -20,10 +20,10 @@
 - [ ] Implement a player resizing system
     - [ ] After every completed level the player's size increases a bit
     - [ ] If the player pushes out an enemy that is bigger than the player, then the player's size and money instantly decreases a bit
-- [ ] Add black outline to enemies for better visibility
+- [x] Add black outline to enemies for better visibility
 
 # Fix tasks
 - [ ] Better centering for texts. Use `rl.MeasureText()` to get better width values
 - [ ] Better collision detection for banana player
-- [ ] Better collision detection for circle enemy shapes
+- [x] Better collision detection for circle enemy shapes
 - [ ] Fix next level logic, there are some bugs with the text and stuff
