@@ -60,8 +60,10 @@ SaveData :: struct {
     score: i32,
     level: i32,
     level_colour: rl.Color,
-    owned_skins : [dynamic]string,
+    owned_skins : [dynamic]string, // List, so that in the future if there are more skins it is compatible
     using_skin : string,
+    owned_enemy_shapes : [dynamic]string, // List, so that in the future if there are more shapes it is compatible
+    using_enemy_shape : string
 }
 
 game_data := SaveData{level=1, level_colour=rl.BLUE}
@@ -184,33 +186,78 @@ game_scene :: proc() {
     // Enemy
     enemy_index := 0
     for enemy in enemies {
-        rl.DrawRectangleV(enemy.pos, enemy.size, enemy.colour)
+        enemy_outside := false
 
-        enemy_rec := rl.Rectangle {
-            x = enemy.pos.x,
-            y = enemy.pos.y,
-            width = enemy.size.x,
-            height = enemy.size.y,
-        }
+        if game_data.using_enemy_shape == "circle" {
+            rl.DrawCircle(i32(enemy.pos.x), i32(enemy.pos.y), enemy.size.x/1.8, enemy.colour)
 
-        if rl.CheckCollisionRecs(player_rec, enemy_rec) {
-            boop_enemy(enemy_index)
-            enemies[enemy_index].is_colliding = true
-        } else {
+            enemy_radius := enemy.size.x / 1.8
+            enemy_center := rl.Vector2{ 
+                enemy.pos.x,
+                enemy.pos.y,
+            }
+            rl.DrawCircleLines(
+                i32(enemy_center.x),
+                i32(enemy_center.y),
+                enemy_radius,
+                rl.BLACK,
+            )
+
+            if rl.CheckCollisionCircleRec(enemy_center, enemy_radius, player_rec) {
+                boop_enemy(enemy_index)
+                enemies[enemy_index].is_colliding = true
+            } else {
+                if enemies[enemy_index].is_colliding {
+                    enemies[enemy_index].is_colliding = false
+                    any_collision = false
+                }
+            }
+
             if enemies[enemy_index].is_colliding {
-                enemies[enemy_index].is_colliding = false
-                any_collision = false
+                any_collision = true
+            }
+
+            if enemy.pos.x < (0 - enemy.size.x)/2 || enemy.pos.x > f32(rl.GetScreenWidth()) ||
+               enemy.pos.y < (0 - enemy.size.y)/2 || enemy.pos.y > f32(rl.GetScreenHeight())
+            {
+                enemy_outside = true
+            }
+        } else {
+            rl.DrawRectangleV(enemy.pos, enemy.size, enemy.colour)
+            rl.DrawRectangleLines(
+                i32(enemy.pos.x), i32(enemy.pos.y), 
+                i32(enemy.size.x), i32(enemy.size.y), rl.BLACK
+            )
+
+            enemy_rec := rl.Rectangle {
+                x = enemy.pos.x,
+                y = enemy.pos.y,
+                width = enemy.size.x,
+                height = enemy.size.y,
+            }
+
+
+            if rl.CheckCollisionRecs(player_rec, enemy_rec) {
+                boop_enemy(enemy_index)
+                enemies[enemy_index].is_colliding = true
+            } else {
+                if enemies[enemy_index].is_colliding {
+                    enemies[enemy_index].is_colliding = false
+                    any_collision = false
+                }
+            }
+
+            if enemies[enemy_index].is_colliding {
+                any_collision = true
+            }
+
+            if enemy.pos.x < (0 - enemy.size.x) || enemy.pos.x > f32(rl.GetScreenWidth()) ||
+               enemy.pos.y < (0 - enemy.size.y) || enemy.pos.y > f32(rl.GetScreenHeight()) 
+            {
+                enemy_outside = true
             }
         }
-
-        if enemies[enemy_index].is_colliding {
-            any_collision = true
-        }
-        
-        // Check if enemy is outside of the screen
-        if enemy.pos.x < (0 - enemy.size.x) || enemy.pos.x > f32(rl.GetScreenWidth()) ||
-            enemy.pos.y < (0 - enemy.size.y) || enemy.pos.y > f32(rl.GetScreenHeight()) 
-        {                
+        if enemy_outside {                
             game_data.money += i32(0.2 * enemy.size.x)
             game_data.score += 1
 
@@ -346,7 +393,9 @@ shop_scene :: proc() {
 
     mouse_pos := rl.GetMousePosition()
     if rl.IsMouseButtonPressed(rl.MouseButton.LEFT) {
-        if rl.CheckCollisionPointRec(mouse_pos, btn_banana_rect) && !banana_owned{
+        if rl.CheckCollisionPointRec(mouse_pos, btn_banana_rect) && !banana_owned && 
+           game_data.money >= 100
+        {
             game_data.money -= 100
             append(&game_data.owned_skins, "banana")
             save_game_data(game_data)
@@ -373,6 +422,58 @@ shop_enemy_shapes_scene :: proc() {
     rl.ClearBackground(rl.BEIGE)
 
     shop_layout("enemy_shapes")
+
+    circle_owned := false
+
+    for shape in game_data.owned_enemy_shapes {
+        if shape == "circle" {
+            circle_owned = true
+        }
+    }
+
+    rl.DrawCircle(rl.GetScreenWidth()/2 - 110, 300, 30, rl.BLUE)
+    rl.DrawText("Circle", rl.GetScreenWidth()/2-155, 350, 30, rl.BLACK)
+    rl.DrawTexture(
+        circle_owned ? owned_text_texture : (game_data.money >= 50 ? buy_btn_green_texture : buy_btn_red_texture), 
+        rl.GetScreenWidth()/2-140, 380, rl.WHITE
+    )
+    if circle_owned {
+        rl.DrawTexture(
+            game_data.using_enemy_shape == "circle" ? using_btn_texture : use_btn_texture, 
+            i32(use_buttons_rects[0].x), i32(use_buttons_rects[0].y), rl.WHITE
+        )
+    }
+
+    rl.DrawRectangleV({f32(rl.GetScreenWidth())/2 + 180, 280}, 50, rl.BLUE)
+    rl.DrawText("Rectangle", rl.GetScreenWidth()/2+130, 350, 30, rl.BLACK)
+    rl.DrawTexture(owned_text_texture, rl.GetScreenWidth()/2+170, 380, rl.WHITE) // Default character
+    rl.DrawTexture(
+        game_data.using_enemy_shape == "circle" ? use_btn_texture : using_btn_texture, 
+        i32(use_buttons_rects[1].x), i32(use_buttons_rects[1].y), rl.WHITE
+    )
+
+    mouse_pos := rl.GetMousePosition()
+    if rl.IsMouseButtonPressed(rl.MouseButton.LEFT) {
+        if rl.CheckCollisionPointRec(mouse_pos, btn_banana_rect) && !circle_owned &&
+           game_data.money >= 50
+        {
+            game_data.money -= 100
+            append(&game_data.owned_enemy_shapes, "circle")
+            save_game_data(game_data)
+        }
+        if rl.CheckCollisionPointRec(mouse_pos, use_buttons_rects[0]) && 
+           game_data.using_enemy_shape != "circle" && circle_owned == true
+        {
+            game_data.using_enemy_shape = "circle"
+            save_game_data(game_data)
+        }
+        if rl.CheckCollisionPointRec(mouse_pos, use_buttons_rects[1]) && 
+           game_data.using_enemy_shape == "circle"
+        {
+            game_data.using_enemy_shape = "rectangle"
+            save_game_data(game_data)
+        }
+    }
 
     rl.EndDrawing()
 }
