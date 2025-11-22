@@ -72,10 +72,11 @@ SaveData :: struct {
     owned_enemy_shapes : [dynamic]string,
     using_enemy_shape : string,
     owned_backgrounds: [dynamic]string,
-    using_background: string
+    using_background: string,
+    player_scale: f32
 }
 
-game_data := SaveData{level=1, level_colour=rl.BLUE}
+game_data := SaveData{level=1, level_colour=rl.BLUE, player_scale=1}
 
 init :: proc() {
     rl.InitWindow(800, 600, "BoopBoop by: sharkmu")
@@ -195,15 +196,15 @@ game_scene :: proc() {
 
     // Player
     player_movement()
-    rl.DrawTexture(
+    rl.DrawTextureEx(
         game_data.using_skin == "banana" ? player_banana_texture : player_ding_texture,
-        i32(player.pos.x), i32(player.pos.y), player.colour
+        {player.pos.x, player.pos.y}, 0, game_data.player_scale, player.colour
     )
     player_rec := rl.Rectangle {
         x = player.pos.x,
         y = player.pos.y,
-        width = f32(player_ding_texture.width),
-        height = f32(player_ding_texture.height),
+        width = f32(player_ding_texture.width)*game_data.player_scale,
+        height = f32(player_ding_texture.height)*game_data.player_scale,
     }
     
     // Enemy
@@ -280,7 +281,9 @@ game_scene :: proc() {
                 enemy_outside = true
             }
         }
-        if enemy_outside {                
+        if enemy_outside {
+            fmt.println(enemy.size.y)
+            fmt.println(player.size.y*game_data.player_scale)
             game_data.money += i32(0.2 * enemy.size.x)
             game_data.score += 1
 
@@ -617,7 +620,7 @@ player_movement :: proc() {
     if (player.pos.x > 0) && !any_collision && player_direction == "LEFT" {
         player.pos.x -= player_speed * 100 * rl.GetFrameTime()
     }
-    if player.pos.x < f32(rl.GetScreenWidth() - 64) && !any_collision && 
+    if player.pos.x < f32(rl.GetScreenWidth()) - 64*game_data.player_scale && !any_collision && 
        player_direction == "RIGHT" 
     {
         player.pos.x += player_speed * 100 * rl.GetFrameTime()
@@ -625,7 +628,7 @@ player_movement :: proc() {
     if player.pos.y > 0 && !any_collision && player_direction == "UP" {
         player.pos.y -= player_speed * 100 * rl.GetFrameTime()
     }
-    if player.pos.y < f32(rl.GetScreenHeight() - 64) && !any_collision && 
+    if player.pos.y < f32(rl.GetScreenHeight()) - 64*game_data.player_scale && !any_collision && 
        player_direction == "DOWN" 
     {
         player.pos.y += player_speed * 100 * rl.GetFrameTime()
@@ -711,8 +714,10 @@ boop_enemy :: proc(index: int) {
 next_level :: proc() {
     game_data.level += 1
     game_data.level_colour = rl.Color{u8(rand_num(80, 255)), u8(rand_num(80, 255)), u8(rand_num(80, 255)), u8(rand_num(50, 255))}
+    game_data.player_scale += 0.2
     save_game_data(game_data)
 
+    any_collision = false
     too_many_enemies = false
     generate_enemy(1)
 
@@ -722,6 +727,7 @@ next_level :: proc() {
 }
 
 restart_level :: proc() {
+    any_collision = false
     too_many_enemies = false
     delete(enemies)
     enemies = nil
