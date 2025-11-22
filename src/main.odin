@@ -317,6 +317,7 @@ game_scene :: proc() {
         level_text_timer -= frameTime
         if level_text_timer <= 0 {
             show_level_text = false
+            level_text_timer = 2.0 // reset the value of it
         }
     }
 
