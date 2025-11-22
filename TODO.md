@@ -17,9 +17,9 @@
     - [x] Have a "SKIP level" button to be able skip the level for a set amount of money * level number
     - [x] After every enemy pushed out the player gets time based on the size of the enemy
     - [x] The bigger the enemy is, the more time the player gets after pushing it out
-- [ ] Implement a player resizing system
+- [x] Implement a player resizing system
     - [x] After every completed level the player's size increases a bit
-    - [ ] If the player pushes out an enemy that is bigger than the player, then the player's size and money instantly decreases a bit
+    - [x] If the player pushes out an enemy that is bigger than the player, then the player's size and money instantly decreases a bit
 - [x] Add black outline to enemies for better visibility
 
 # Fix tasks

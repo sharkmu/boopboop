@@ -11,18 +11,26 @@ import "core:fmt" // for debugging
 Character :: struct {
     pos : rl.Vector2,
     size: rl.Vector2,
+}
+
+EnemyCharacter :: struct {
+    character : Character,
     colour: rl.Color,
     is_colliding: bool,
+    bigger_timer: f32,
 }
 
 player := Character{}
 player_direction := "LEFT" // LEFT, RIGHT, UP, DOWN
 player_speed: f32
+player_scale_divider: f32 = 1.4
 
-enemies: [dynamic]Character
+enemies: [dynamic]EnemyCharacter
 too_many_enemies := false
 any_collision := false
 
+show_enemy_bigger_text := false
+enemy_bigger_text_timer : f32 = 1.0
 show_level_text := false
 level_text_timer: f32 = 2.0
 current_time: f64
@@ -88,7 +96,6 @@ init :: proc() {
     player = Character{
         pos = rl.Vector2{400, 300},
         size = rl.Vector2{48, 48},
-        colour = rl.YELLOW,
     }
 
     restart_btn_rect = rl.Rectangle{
@@ -198,27 +205,40 @@ game_scene :: proc() {
     player_movement()
     rl.DrawTextureEx(
         game_data.using_skin == "banana" ? player_banana_texture : player_ding_texture,
-        {player.pos.x, player.pos.y}, 0, game_data.player_scale, player.colour
+        {player.pos.x, player.pos.y}, 0, game_data.player_scale/player_scale_divider, rl.YELLOW
     )
     player_rec := rl.Rectangle {
         x = player.pos.x,
         y = player.pos.y,
-        width = f32(player_ding_texture.width)*game_data.player_scale,
-        height = f32(player_ding_texture.height)*game_data.player_scale,
+        width = f32(player_ding_texture.width)*game_data.player_scale/player_scale_divider,
+        height = f32(player_ding_texture.height)*game_data.player_scale/player_scale_divider,
     }
     
     // Enemy
     enemy_index := 0
-    for enemy in enemies {
+    for &enemy in enemies {
         enemy_outside := false
 
-        if game_data.using_enemy_shape == "circle" {
-            rl.DrawCircle(i32(enemy.pos.x), i32(enemy.pos.y), enemy.size.x/1.8, enemy.colour)
+        if player_rec.width < enemy.character.size.x {
+            frameTime := rl.GetFrameTime()
+            enemy.bigger_timer -= frameTime
+            if enemy.bigger_timer <= 0 {
+                generate_enemy(1)
+                ordered_remove(&enemies, enemy_index)
+                enemy.bigger_timer = 5.0 // reset the value of it
+            }
+        }
 
-            enemy_radius := enemy.size.x / 1.8
+        if game_data.using_enemy_shape == "circle" {
+            rl.DrawCircle(
+                i32(enemy.character.pos.x), i32(enemy.character.pos.y), 
+                enemy.character.size.x/1.8, enemy.colour
+            )
+
+            enemy_radius := enemy.character.size.x / 1.8
             enemy_center := rl.Vector2{ 
-                enemy.pos.x,
-                enemy.pos.y,
+                enemy.character.pos.x,
+                enemy.character.pos.y,
             }
             rl.DrawCircleLines(
                 i32(enemy_center.x),
@@ -241,23 +261,25 @@ game_scene :: proc() {
                 any_collision = true
             }
 
-            if enemy.pos.x < (0 - enemy.size.x)/2 || enemy.pos.x > f32(rl.GetScreenWidth()) ||
-               enemy.pos.y < (0 - enemy.size.y)/2 || enemy.pos.y > f32(rl.GetScreenHeight())
+            if enemy.character.pos.x < (0 - enemy.character.size.x)/2 || 
+               enemy.character.pos.x > f32(rl.GetScreenWidth()) ||
+               enemy.character.pos.y < (0 - enemy.character.size.y)/2 || 
+               enemy.character.pos.y > f32(rl.GetScreenHeight())
             {
                 enemy_outside = true
             }
         } else {
-            rl.DrawRectangleV(enemy.pos, enemy.size, enemy.colour)
+            rl.DrawRectangleV(enemy.character.pos, enemy.character.size, enemy.colour)
             rl.DrawRectangleLines(
-                i32(enemy.pos.x), i32(enemy.pos.y), 
-                i32(enemy.size.x), i32(enemy.size.y), rl.BLACK
+                i32(enemy.character.pos.x), i32(enemy.character.pos.y), 
+                i32(enemy.character.size.x), i32(enemy.character.size.y), rl.BLACK
             )
 
             enemy_rec := rl.Rectangle {
-                x = enemy.pos.x,
-                y = enemy.pos.y,
-                width = enemy.size.x,
-                height = enemy.size.y,
+                x = enemy.character.pos.x,
+                y = enemy.character.pos.y,
+                width = enemy.character.size.x,
+                height = enemy.character.size.y,
             }
 
 
@@ -275,17 +297,28 @@ game_scene :: proc() {
                 any_collision = true
             }
 
-            if enemy.pos.x < (0 - enemy.size.x) || enemy.pos.x > f32(rl.GetScreenWidth()) ||
-               enemy.pos.y < (0 - enemy.size.y) || enemy.pos.y > f32(rl.GetScreenHeight()) 
+            if enemy.character.pos.x < (0 - enemy.character.size.x) || 
+               enemy.character.pos.x > f32(rl.GetScreenWidth()) ||
+               enemy.character.pos.y < (0 - enemy.character.size.y) || 
+               enemy.character.pos.y > f32(rl.GetScreenHeight()) 
             {
                 enemy_outside = true
             }
         }
         if enemy_outside {
-            fmt.println(enemy.size.y)
-            fmt.println(player.size.y*game_data.player_scale)
-            game_data.money += i32(0.2 * enemy.size.x)
-            game_data.score += 1
+            if player_rec.width < enemy.character.size.x {
+                if game_data.player_scale > 0.6 {
+                    game_data.player_scale -= 0.2
+                }
+                game_data.money -= game_data.money/10
+                show_enemy_bigger_text = true
+            } else {
+                game_data.money += i32(0.2 * enemy.character.size.x)
+                game_data.score += 1
+
+                extra_time += f64(enemy.character.size.x/10)
+            }
+            save_game_data(game_data)
 
             ordered_remove(&enemies, enemy_index)
             any_collision = false
@@ -294,10 +327,6 @@ game_scene :: proc() {
                 r_enemy_amount := rand_num(1, 10)
                 generate_enemy(int(r_enemy_amount))
             }
-            
-            save_game_data(game_data)
-
-            extra_time += f64(enemy.size.x/10)
         }
 
         enemy_index += 1
@@ -323,6 +352,16 @@ game_scene :: proc() {
         if level_text_timer <= 0 {
             show_level_text = false
             level_text_timer = 2.0 // reset the value of it
+        }
+    }
+    if show_enemy_bigger_text { //should be opposite
+        frameTime := rl.GetFrameTime()
+        rl.DrawText("Enemy was stronger!", 190, 200, 44, rl.BLACK)
+        rl.DrawText("Enemy was stronger!", 192, 200, 43, rl.ORANGE)
+        enemy_bigger_text_timer -= frameTime
+        if enemy_bigger_text_timer <= 0 {
+            show_enemy_bigger_text = false
+            enemy_bigger_text_timer = 1.0 // reset the value of it
         }
     }
 
@@ -620,16 +659,16 @@ player_movement :: proc() {
     if (player.pos.x > 0) && !any_collision && player_direction == "LEFT" {
         player.pos.x -= player_speed * 100 * rl.GetFrameTime()
     }
-    if player.pos.x < f32(rl.GetScreenWidth()) - 64*game_data.player_scale && !any_collision && 
-       player_direction == "RIGHT" 
+    if player.pos.x < f32(rl.GetScreenWidth()) - 64*game_data.player_scale/player_scale_divider && 
+       !any_collision && player_direction == "RIGHT" 
     {
         player.pos.x += player_speed * 100 * rl.GetFrameTime()
     }
     if player.pos.y > 0 && !any_collision && player_direction == "UP" {
         player.pos.y -= player_speed * 100 * rl.GetFrameTime()
     }
-    if player.pos.y < f32(rl.GetScreenHeight()) - 64*game_data.player_scale && !any_collision && 
-       player_direction == "DOWN" 
+    if player.pos.y < f32(rl.GetScreenHeight()) - 64*game_data.player_scale/player_scale_divider &&
+       !any_collision && player_direction == "DOWN" 
     {
         player.pos.y += player_speed * 100 * rl.GetFrameTime()
     }
@@ -678,17 +717,19 @@ player_movement :: proc() {
             }
         }
     }
-    if rl.IsKeyDown((.SPACE)) { next_level() }
 }
 
 generate_enemy :: proc(amount: int) {
     for i := 0; i < amount; i+=1 {
-        size_num := rand_num(12, 48)
-        e: Character = Character{ 
-            pos = rl.Vector2{ rand_num(10, 700), rand_num(10, 500)},
-            size = rl.Vector2{ size_num, size_num },
+        size_num := rand_num(12, 48*game_data.player_scale)
+        e: EnemyCharacter = EnemyCharacter{
+            character = Character {
+                pos = rl.Vector2{ rand_num(10, 700), rand_num(10, 500)},
+                size = rl.Vector2{ size_num, size_num }
+            },
             colour = rl.Color{ u8(rand_num(0, 255)), u8(rand_num(0, 255)), u8(rand_num(0, 255)), 255},
             is_colliding = false,
+            bigger_timer = 5.0
         }
         append(&enemies, e) 
     }
@@ -697,17 +738,17 @@ generate_enemy :: proc(amount: int) {
 boop_enemy :: proc(index: int) {
     switch player_direction {
         case "LEFT":
-            enemies[index].pos.x -= (5000 * rl.GetFrameTime())/enemies[index].size.x
-            enemies[index].pos.y += (300 * rl.GetFrameTime())/enemies[index].size.y
+            enemies[index].character.pos.x -= (5000 * rl.GetFrameTime())/enemies[index].character.size.x
+            enemies[index].character.pos.y += (300 * rl.GetFrameTime())/enemies[index].character.size.y
         case "RIGHT":
-            enemies[index].pos.x += (5000 * rl.GetFrameTime())/enemies[index].size.x
-            enemies[index].pos.y -= (300 * rl.GetFrameTime())/enemies[index].size.y
+            enemies[index].character.pos.x += (5000 * rl.GetFrameTime())/enemies[index].character.size.x
+            enemies[index].character.pos.y -= (300 * rl.GetFrameTime())/enemies[index].character.size.y
         case "UP":
-            enemies[index].pos.x += (300 * rl.GetFrameTime())/enemies[index].size.x
-            enemies[index].pos.y -= (5000 * rl.GetFrameTime())/enemies[index].size.y
+            enemies[index].character.pos.x += (300 * rl.GetFrameTime())/enemies[index].character.size.x
+            enemies[index].character.pos.y -= (5000 * rl.GetFrameTime())/enemies[index].character.size.y
         case "DOWN":
-            enemies[index].pos.x -= (300 * rl.GetFrameTime())/enemies[index].size.x
-            enemies[index].pos.y += (5000 * rl.GetFrameTime())/enemies[index].size.y
+            enemies[index].character.pos.x -= (300 * rl.GetFrameTime())/enemies[index].character.size.x
+            enemies[index].character.pos.y += (5000 * rl.GetFrameTime())/enemies[index].character.size.y
     }
 }
 
