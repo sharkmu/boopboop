@@ -225,6 +225,7 @@ game_scene :: proc() {
             if enemy.bigger_timer <= 0 {
                 generate_enemy(1)
                 ordered_remove(&enemies, enemy_index)
+                any_collision = false
                 enemy.bigger_timer = 5.0 // reset the value of it
             }
         }
