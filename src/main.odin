@@ -38,6 +38,7 @@ shop_exit_btn_rect := rl.Rectangle{}
 btn_banana_rect := rl.Rectangle{}
 use_buttons_rects := [dynamic]rl.Rectangle{}
 lost_restart_btn_rect := rl.Rectangle{}
+skip_btn_rect := rl.Rectangle{}
 
 // Textures - sprites
 // Player skins
@@ -52,6 +53,7 @@ buy_btn_red_texture : rl.Texture2D
 owned_text_texture : rl.Texture2D
 use_btn_texture : rl.Texture2D
 using_btn_texture : rl.Texture2D
+skip_btn_texture : rl.Texture2D
 
 // Backgrounds
 bg_linear_circles_texture : rl.Texture2D
@@ -110,6 +112,10 @@ init :: proc() {
         x = f32(rl.GetScreenWidth()/2-70), y = f32(rl.GetScreenHeight()/2),
         width = 32*3.5, height = 32*3.5 // multipled by 3.5 to match scaling
     }
+    skip_btn_rect = rl.Rectangle{
+        x = f32(rl.GetScreenWidth()/2-80), y = f32(rl.GetScreenHeight()/2+80),
+        width = 200*0.7, height = 130*0.7 // multipled by 0.7 to match scaling
+    }
 
     // Load textures
     player_banana_texture = rl.LoadTexture("assets/player_banana.png")
@@ -122,6 +128,7 @@ init :: proc() {
     bg_linear_circles_texture = rl.LoadTexture("assets/bg_linear_circles.png")
     use_btn_texture = rl.LoadTexture("assets/use_button.png")
     using_btn_texture = rl.LoadTexture("assets/using_button.png")
+    skip_btn_texture = rl.LoadTexture("assets/skip_button.png")
 }
 
 rand_num :: proc(min: f32, max: f32) -> f32 {
@@ -340,14 +347,28 @@ lost_scene :: proc() {
 
     rl.DrawText("You lost!", rl.GetScreenWidth()/2-220, rl.GetScreenHeight()/2-150, 100, rl.RED)
     rl.DrawTextureEx(
-        restart_btn_texture, {f32(rl.GetScreenWidth()/2-70), f32(rl.GetScreenHeight()/2)}, 
+        restart_btn_texture, {f32(rl.GetScreenWidth()/2-70), f32(rl.GetScreenHeight()/2-40)}, 
         0, 3.5, rl.WHITE
     )
+    rl.DrawTextureEx(
+        skip_btn_texture, {f32(rl.GetScreenWidth()/2-80), f32(rl.GetScreenHeight()/2+80)}, 
+        0, 0.7, rl.WHITE)
+    rl.DrawText(fmt.ctprint("$", 100*game_data.level), rl.GetScreenWidth()/2-60, 480, 30, rl.BLUE)
+
     mouse_pos := rl.GetMousePosition()
     if rl.IsMouseButtonPressed(rl.MouseButton.LEFT) {
         if rl.CheckCollisionPointRec(mouse_pos, lost_restart_btn_rect) {
             current_scene = "GAME_SCENE"
             restart_level()
+        }
+        if rl.CheckCollisionPointRec(mouse_pos, skip_btn_rect) {
+            if game_data.money >= 100*game_data.level {
+                game_data.money -= 100*game_data.level
+                save_game_data(game_data)
+
+                current_scene = "GAME_SCENE"
+                next_level()
+            }
         }
     }
 
