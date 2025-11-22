@@ -293,6 +293,8 @@ game_scene :: proc() {
             }
             
             save_game_data(game_data)
+
+            extra_time += f64(enemy.size.x/10)
         }
 
         enemy_index += 1
@@ -309,7 +311,7 @@ game_scene :: proc() {
     rl.DrawText(fmt.ctprint("Money:", game_data.money), 10, 10, 30, rl.BLACK)
     rl.DrawText(fmt.ctprint("Score:", game_data.score), 10, 50, 30, rl.BLACK)
     rl.DrawText(fmt.ctprint("Level:", game_data.level), 10, 90, 30, rl.BLACK)
-    rl.DrawText(fmt.ctprint("Time:", math.floor(60-current_time)), 10, 130, 30, rl.BLACK)
+    rl.DrawText(fmt.ctprint("Time:", math.floor(10-current_time)), 10, 130, 30, rl.BLACK)
     if show_level_text {
         frameTime := rl.GetFrameTime()
         rl.DrawText("New Level!", 250, 200, 67, rl.BLACK)
@@ -334,7 +336,7 @@ game_scene :: proc() {
         }
     }
 
-    if 60 - current_time <= 0 {
+    if 10 - current_time <= 0 {
         rl.EndDrawing()
         current_scene = "LOST_SCENE"
     }
