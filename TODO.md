@@ -12,11 +12,11 @@
 - [x] Add ability to restart the level
 - [x] Add shop where the player can spend his/her money
     - [x] Show prices
-- [ ] Add a timer
+- [x] Add a timer
     - [x] If the time runs out the player fails the level, have the ability to restart it
     - [x] Have a "SKIP level" button to be able skip the level for a set amount of money * level number
-    - [ ] After every enemy pushed out the player gets time based on the size of the enemy
-    - [ ] The bigger the enemy is, the more time the player gets after pushing it out
+    - [x] After every enemy pushed out the player gets time based on the size of the enemy
+    - [x] The bigger the enemy is, the more time the player gets after pushing it out
 - [ ] Implement a player resizing system
     - [ ] After every completed level the player's size increases a bit
     - [ ] If the player pushes out an enemy that is bigger than the player, then the player's size and money instantly decreases a bit
